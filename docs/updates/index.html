@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- Begin Jekyll SEO tag v2.7.1 -->
+    <title>Telegram Api for php</title>
+    <meta name="generator" content="Jekyll v3.9.0" />
+    <meta property="og:title" content="Telegram Api for php" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="description" content="یک بیس برای ساخت ربات تلگرام" />
+    <meta property="og:description" content="یک بیس برای ساخت ربات تلگرام" />
+    <link rel="canonical" href="https://roonx.github.io/telegramBotPhp/" />
+    <meta property="og:url" content="https://roonx.github.io/telegramBotPhp/" />
+    <meta property="og:site_name" content="telegramBotPhp" />
+    <meta name="twitter:card" content="summary" />
+    <meta property="twitter:title" content="Telegram Api for php" />
+    <script type="application/ld+json">
+      {
+        "@type": "WebSite",
+        "name": "telegramBotPhp",
+        "headline": "Telegram Api for php",
+        "description": "یک بیس برای ساخت ربات تلگرام",
+        "url": "https://roonx.github.io/telegramBotPhp/",
+        "@context": "https://schema.org"
+      }
+    </script>
+    <!-- End Jekyll SEO tag -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#157878" />
+    <link
+      rel="stylesheet"
+      href="/telegramBotPhp/assets/css/style.css?v=2bce9b473094996274906b8499ef31bd67a06085"
+    />
+    <style>
+      * {
+        font-family: yekan;
+      }
+      code {
+        direction: ltr;
+        display: block;
+        white-space: pre-line;
+        padding: 0.5rem 1rem !important;
+      }
+      .btn-backmenu {
+        background-color: #03a9f4;
+        display: flex;
+        justify-content: center;
+        width: 14rem;
+        margin: 0 auto;
+        font-family: "yekan";
+      }
+      .btn-backmenu:hover {
+        background-color: #03a9f4;
+      }
+      .table {
+        display: table !important;
+        --bs-table-bg: transparent;
+        --bs-table-striped-color: #212529;
+        --bs-table-striped-bg: rgba(0, 0, 0, 0.05);
+        --bs-table-active-color: #212529;
+        --bs-table-active-bg: rgba(0, 0, 0, 0.1);
+        --bs-table-hover-color: #212529;
+        --bs-table-hover-bg: rgba(0, 0, 0, 0.075);
+        width: 80%;
+        margin: 0 auto;
+        margin-bottom: 1rem;
+        color: #212529;
+        vertical-align: top;
+        border-color: #dee2e6;
+      }
+      tbody,
+      td,
+      tfoot,
+      th,
+      thead,
+      tr {
+        border-color: inherit;
+        border-style: solid;
+        border-width: 0;
+      }
+      .section {
+        margin: 0.6rem auto;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">telegramBotPhp</h1>
+      <h2 class="project-tagline"></h2>
+
+      <a
+        href="https://github.com/roonx/telegramBotPhp"
+        class="btn"
+        target="_blank"
+        >مشاهده در گیتهاب</a
+      >
+    </section>
+
+    <section class="main-content">
+      <div dir="rtl">
+        <a href="https://roonx.github.io/telegramBotPhp/" class="btn btn-backmenu">برگشت به صفحه اصلی</a>
+        <p>
+          منظور از آپدیت ها متد هایی هستند که موقع ارسال پیام توسط کاربر قابل
+          استفاده هستند
+        </p>
+        <p>
+          این متد ها دارای زیرمجموعه ای از متدها هستند که به صورت متد های زنجیره
+          ای میتوان از آنها استفاده کرد که با استفاده از get{name} گرفته می شوند
+          و توسط isset{name} اعتبار سنجی می شوند
+        </p>
+        <p>
+          اگر میخواهید اطلاعات بیشتری از متد های زنجیره ای به دست آورید
+          <a>اینجا</a> کلیک کنید
+        </p>
+        <!-- region message -->
+        <section class="section">
+          <p>متد message :</p>
+          <p>
+            داده هایی از نوع message هستند که کاربر به صورت عادی برای ما ارسال
+            می کند
+          </p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/Message">Message</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->message(); </code>
+        </section>
+        <!-- endregion message -->
+
+        <!-- region edited_message -->
+        <section class="section">
+          <p>متد edited_message :</p>
+          <p>این متد هنگامی که یک پیام ویرایش شود قابل استفاده است</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/Message">Message</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->edited_message(); </code>
+        </section>
+        <!-- endregion edited_message -->
+
+        <!-- region channel_post -->
+        <section class="section">
+          <p>متد channel_post :</p>
+          <p>این متد هنگامی که یک پیام از کانال ارسال شود قابل استفاده است</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/Message">Message</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->channel_post(); </code>
+        </section>
+        <!-- endregion channel_post -->
+
+        <!-- region edited_channel_post -->
+        <section class="section">
+          <p>متد edited_channel_post :</p>
+          <p>این متد هنگامی که یک پیام در کانال ویرایش شود قابل استفاده است</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/Message">Message</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->edited_channel_post(); </code>
+        </section>
+        <!-- endregion edited_channel_post -->
+
+        <!-- region inline_query -->
+        <section class="section">
+          <p>متد inline_query :</p>
+          <p>این متد هنگام ارسال درخواست به صورت اینلاین قابل استفاده است</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/InlineQuery">InlineQuery</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->inline_query(); </code>
+        </section>
+        <!-- endregion inline_query -->
+
+        <!-- region chosen_inline_result -->
+        <section class="section">
+          <p>متد chosen_inline_result :</p>
+          <p>این متد هنگامی که کاربر نتیجه اینلاین رو انتخاب کند کاربرد دارد</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/ChosenInlineResult">ChosenInlineResult</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->chosen_inline_result(); </code>
+        </section>
+        <!-- endregion chosen_inline_result -->
+
+        <!-- region callback_query -->
+        <section class="section">
+          <p>متد callback_query :</p>
+          <p>این متد هنگامی که کاربر روی دکمه شیشه ای بزند کاربرد دارد</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/CallbackQuery">CallbackQuery</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->callback_query(); </code>
+        </section>
+        <!-- endregion callback_query -->
+
+        <!-- region shipping_query -->
+        <section class="section">
+          <p>متد shipping_query :</p>
+          <p>این متد مربوط به فاکتور ها می باشد</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/ShippingQuery">ShippingQuery</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->shipping_query(); </code>
+        </section>
+        <!-- endregion shipping_query -->
+
+        <!-- region pre_checkout_query -->
+        <section class="section">
+          <p>متد pre_checkout_query :</p>
+          <p>این متد اطلاعات کاملی از فاکتور پرداخت شده ارائه میده</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/PreCheckoutQuery">PreCheckoutQuery</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->pre_checkout_query(); </code>
+        </section>
+        <!-- endregion pre_checkout_query -->
+
+        <!-- region poll -->
+        <section class="section">
+          <p>متد poll :</p>
+          <p>این متد مربوط به نظرسنجی ها می باشد</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/poll">poll</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->poll(); </code>
+        </section>
+        <!-- endregion poll -->
+
+        <!-- region poll_answer -->
+        <section class="section">
+          <p>متد poll_answer :</p>
+          <p>این متد هنگام پاسخ به نظرسنجی توسط کاربر کاربرد داره</p>
+          <table class="table">
+            <tr>
+              <td>مقدار برگشتی :</td>
+              <td><a href="/types/PollAnswer">PollAnswer</a></td>
+            </tr>
+            <tr>
+              <td>مستند تلگرام :</td>
+              <td>
+                <a
+                  href="https://core.telegram.org/bots/api#update"
+                  target="_blank"
+                  >مشاهده</a
+                >
+              </td>
+            </tr>
+          </table>
+          <p>نمونه کد :</p>
+          <code> $Telegram->poll_answer(); </code>
+        </section>
+        <!-- endregion poll_answer -->
+      </div>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"
+          ><a href="https://github.com/roonx/telegramBotPhp">telegramBotPhp</a>
+          is maintained by <a href="https://github.com/roonx">roonx</a>.</span
+        >
+
+        <span class="site-footer-credits"
+          >This page was generated by
+          <a href="https://pages.github.com">GitHub Pages</a>.</span
+        >
+      </footer>
+    </section>
+  </body>
+</html>

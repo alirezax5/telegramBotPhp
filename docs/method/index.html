@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- Begin Jekyll SEO tag v2.7.1 -->
+    <title>Telegram Api for php</title>
+    <meta name="generator" content="Jekyll v3.9.0" />
+    <meta property="og:title" content="Telegram Api for php" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="description" content="یک بیس برای ساخت ربات تلگرام" />
+    <meta property="og:description" content="یک بیس برای ساخت ربات تلگرام" />
+    <link rel="canonical" href="https://roonx.github.io/telegramBotPhp/" />
+    <meta property="og:url" content="https://roonx.github.io/telegramBotPhp/" />
+    <meta property="og:site_name" content="telegramBotPhp" />
+    <meta name="twitter:card" content="summary" />
+    <meta property="twitter:title" content="Telegram Api for php" />
+    <script type="application/ld+json">
+      {
+        "@type": "WebSite",
+        "name": "telegramBotPhp",
+        "headline": "Telegram Api for php",
+        "description": "یک بیس برای ساخت ربات تلگرام",
+        "url": "https://roonx.github.io/telegramBotPhp/",
+        "@context": "https://schema.org"
+      }
+    </script>
+    <!-- End Jekyll SEO tag -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#157878" />
+    <link
+      rel="stylesheet"
+      href="/telegramBotPhp/assets/css/style.css?v=2bce9b473094996274906b8499ef31bd67a06085"
+    />
+    <style>
+      * {
+        font-family: yekan;
+      }
+      code {
+        direction: ltr;
+        display: block;
+        white-space: pre-line;
+        padding: 0.5rem 1rem !important;
+      }
+      .btn-backmenu {
+        background-color: #03a9f4;
+        display: flex;
+        justify-content: center;
+        width: 14rem;
+        margin: 0 auto;
+        font-family: "yekan";
+      }
+      .btn-backmenu:hover {
+        background-color: #03a9f4;
+      }
+      .table {
+        display: table !important;
+        --bs-table-bg: transparent;
+        --bs-table-striped-color: #212529;
+        --bs-table-striped-bg: rgba(0, 0, 0, 0.05);
+        --bs-table-active-color: #212529;
+        --bs-table-active-bg: rgba(0, 0, 0, 0.1);
+        --bs-table-hover-color: #212529;
+        --bs-table-hover-bg: rgba(0, 0, 0, 0.075);
+        width: 80%;
+        margin: 0 auto;
+        margin-bottom: 1rem;
+        color: #212529;
+        vertical-align: top;
+        border-color: #dee2e6;
+      }
+      tbody,
+      td,
+      tfoot,
+      th,
+      thead,
+      tr {
+        border-color: inherit;
+        border-style: solid;
+        border-width: 0;
+      }
+      .section {
+        margin: 0.6rem auto;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">telegramBotPhp</h1>
+      <h2 class="project-tagline"></h2>
+
+      <a
+        href="https://github.com/roonx/telegramBotPhp"
+        class="btn"
+        target="_blank"
+        >مشاهده در گیتهاب</a
+      >
+    </section>
+
+    <section class="main-content">
+      <div dir="rtl">
+        <a
+          href="https://roonx.github.io/telegramBotPhp/"
+          class="btn btn-backmenu"
+          >برگشت به صفحه اصلی</a
+        >
+        <p>متد های زنجیره ای یکی از مهم ترین مبحث این مستند هستند.</p>
+        <p>
+          این دسته از متد ها مانند یک زنجیر بهم متصل هستند و در متد های آپدیتی و
+          متد های تلگرام که اطلاعاتی رو ارسال می کنیم کاربرد دارن کد زیر یک
+          نمونه از متد های زنجیره ای متصل به آپدیت پیام می باشد:
+        </p>
+        <code>$Telegram->message()->getMessageId()</code>
+        <p>
+          برای دریافت یک attribute باید اول متد کلمه get رو اضافه کنیم و برای
+          اعتبار سنجی باید اول آن کلمه ی isset رو بنویسید مانند کد های زیر :
+        </p>
+        <code
+          >$Telegram->message()->getMessageId();
+          $Telegram->message()->issetMessageId()
+        </code>
+        <p>
+          در خط اول آیدی پیام رو دریافت می کنیم و در خط دوم بررسی می کنیم آیدی
+          پیام وجود داره یا که null هستش
+        </p>
+        <p>
+          در مواقعی که ممکنه یک داده null باشه حتما باید با استفاده از isset ها یک شرط بنویسید و بعد get کنید تا به خطایی نخورید مانند کد زیر : 
+        </p>
+        <code>
+            if ($Telegarm->message()->issetForwardFromChat()) {
+                $val = $Telegarm->message()->getForwardFromChat()->getId();
+            }
+        </code>
+        <p>برای دریافت attributeها میتونید به بخش <a href="https://core.telegram.org/bots/api#available-types">types</a> در مستند تلگرام و یا پوشه types مراجعه کنید</p>
+      </div>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"
+          ><a href="https://github.com/roonx/telegramBotPhp">telegramBotPhp</a>
+          is maintained by <a href="https://github.com/roonx">roonx</a>.</span
+        >
+
+        <span class="site-footer-credits"
+          >This page was generated by
+          <a href="https://pages.github.com">GitHub Pages</a>.</span
+        >
+      </footer>
+    </section>
+  </body>
+</html>
