@@ -1,0 +1,32 @@
+{
+  "name": "alirezax5/telegram-Bot-Php",
+  "keywords": [
+    "telegram",
+    "bot",
+    "telegram bot",
+    "تلگرام",
+    "ربات تلگرام",
+    "ساخت ربات تلگرام"
+  ],
+  "homepage": "https://github.com/alirezax5/telegramBotPhp",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alirezax5",
+      "homepage": "http://alirezax5.ir",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "ext-json": "*",
+    "ext-curl": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "telegramBotApiPhp\\": "src/",
+      "telegramBotApiPhp\\Types\\": "src/Types",
+      "telegramBotApiPhp\\Traits\\": "src/Traits"
+    }
+  }
+}
