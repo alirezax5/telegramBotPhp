@@ -14,8 +14,20 @@ namespace telegramBotApiPhp\Types;
  * @method PhotoSize getThumb()
  * @method string getEmoji()
  * @method string getSetName()
+ * @method File getPremiumAnimation()
  * @method MaskPosition getMaskPosition()
  * @method int getFileSize()
+ * @method bool issetFileId()
+ * @method bool issetFileUniqueId()
+ * @method bool issetWidth()
+ * @method bool issetHeight()
+ * @method bool issetIsAnimated()
+ * @method bool issetThumb()
+ * @method bool issetEmoji()
+ * @method bool issetSetName()
+ * @method bool issetPremiumAnimation()
+ * @method bool issetMaskPosition()
+ * @method bool issetFileSize()
  */
 class Sticker extends base
 {
@@ -28,6 +40,7 @@ class Sticker extends base
         'thumb' => PhotoSize::class,
         'emoji' => true,
         'set_name' => true,
+        'premium_animation' => File::class,
         'mask_position' => MaskPosition::class,
         'file_size' => true,
     ];
@@ -40,6 +53,7 @@ class Sticker extends base
     protected $Thumb;
     protected $Emoji;
     protected $SetName;
+    protected $PremiumAnimation;
     protected $MaskPosition;
     protected $FileSize;
 

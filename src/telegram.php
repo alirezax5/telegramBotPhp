@@ -3,14 +3,15 @@
 namespace telegramBotApiPhp;
 
 use telegramBotApiPhp\Types\{CallbackQuery,
+    ChatJoinRequest,
+    ChatMemberUpdated,
     ChosenInlineResult,
     InlineQuery,
     Message,
     Poll,
     PollAnswer,
     PreCheckoutQuery,
-    ShippingQuery
-};
+    ShippingQuery};
 use telegramBotApiPhp\Traits\{isChatTypes, isMedia, isUpdates, method, otherTrait};
 
 class telegram
@@ -56,6 +57,8 @@ class telegram
         'pre_checkout_query' => null,
         'poll' => null,
         'poll_answer' => null,
+        'chat_member' => null,
+        'chat_join_request' => null,
     ];
     private $caches = [
         'chatType' => null,
@@ -106,6 +109,7 @@ class telegram
         $this->caches['username'] = null;
         $this->caches['filesize'] = null;
         $this->caches['caption'] = null;
+        $this->caches['chat_member'] = null;
     }
 
     //endregion init
@@ -325,6 +329,34 @@ class telegram
             if ($this->checkExistUpdate('poll_answer')) {
                 $cache = PollAnswer::create($this->data['poll_answer']);
                 $this->cacheTypes['poll_answer'] = $cache;
+            }
+        }
+        return $cache;
+    }
+    /**
+     * @return ChatMemberUpdated
+     */
+    public function chat_member()
+    {
+        $cache = $this->cacheTypes['chat_member'];
+        if ($cache == null) {
+            if ($this->checkExistUpdate('chat_member')) {
+                $cache = ChatMemberUpdated::create($this->data['chat_member']);
+                $this->cacheTypes['chat_member'] = $cache;
+            }
+        }
+        return $cache;
+    }
+    /**
+     * @return ChatJoinRequest
+     */
+    public function chat_join_request()
+    {
+        $cache = $this->cacheTypes['chat_join_request'];
+        if ($cache == null) {
+            if ($this->checkExistUpdate('chat_join_request')) {
+                $cache = ChatJoinRequest::create($this->data['chat_join_request']);
+                $this->cacheTypes['chat_join_request'] = $cache;
             }
         }
         return $cache;
