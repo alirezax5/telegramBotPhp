@@ -11,7 +11,8 @@ use telegramBotApiPhp\Types\{CallbackQuery,
     Poll,
     PollAnswer,
     PreCheckoutQuery,
-    ShippingQuery};
+    ShippingQuery
+};
 use telegramBotApiPhp\Traits\{isChatTypes, isMedia, isUpdates, method, otherTrait};
 
 class telegram
@@ -333,6 +334,7 @@ class telegram
         }
         return $cache;
     }
+
     /**
      * @return ChatMemberUpdated
      */
@@ -347,6 +349,7 @@ class telegram
         }
         return $cache;
     }
+
     /**
      * @return ChatJoinRequest
      */
@@ -372,6 +375,14 @@ class telegram
     public function update_id()
     {
         return $this->data['update_id'];
+    }
+
+    public function initCacheTypes($type, $data)
+    {
+        if (isset($this->cacheTypes[$type])) {
+            $this->cacheTypes[$type] = $data;
+        }
+
     }
 
     public function patchToUrl($patch)
