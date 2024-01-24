@@ -12,6 +12,7 @@ namespace telegramBotApiPhp\Types;
  * @method string getUrl()
  * @method User getUser()
  * @method string getLanguage()
+ * @method string getCustomEmojiId()
  */
 class MessageEntity extends base
 {
@@ -22,6 +23,7 @@ class MessageEntity extends base
         'url' => true,
         'user' => User::class,
         'language' => true,
+        'custom_emoji_id' => true,
     ];
     protected $Type;
     protected $Offset;
@@ -29,6 +31,7 @@ class MessageEntity extends base
     protected $Url;
     protected $User;
     protected $Language;
+    protected $CustomEmojiId;
 
     protected function init($key, $value)
     {

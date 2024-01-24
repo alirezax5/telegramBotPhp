@@ -8,6 +8,7 @@ use telegramBotApiPhp\Types\{ArrayOfBotCommand,
     ChatAdministratorRights,
     MenuButton,
     returned,
+    returnedArrayOfSticker,
     returnedChat,
     returnedChatInviteLink,
     returnedChatMember,
@@ -19,8 +20,7 @@ use telegramBotApiPhp\Types\{ArrayOfBotCommand,
     returnedString,
     returnedUser,
     returnedUserProfilePhotos,
-    returnedWebhookInfo
-};
+    returnedWebhookInfo};
 
 trait method
 {
@@ -36,9 +36,9 @@ trait method
     /**
      * @return returned
      */
-    public function setWebhook($url, $certificate = null, $ip_address = null, $max_connections = null, $allowed_updates = null, $drop_pending_updates = false)
+    public function setWebhook($url, $certificate = null, $ip_address = null, $max_connections = null, $allowed_updates = null, $drop_pending_updates = false, $secret_token = null)
     {
-        return returned::create($this->bot('setWebhook', compact('url', 'certificate', 'ip_address', 'max_connections', 'allowed_updates', 'drop_pending_updates')));
+        return returned::create($this->bot('setWebhook', compact('url', 'certificate', 'ip_address', 'max_connections', 'allowed_updates', 'drop_pending_updates', 'secret_token')));
     }
 
     /**
@@ -116,9 +116,9 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendPhoto($chat_id, $photo, string $caption = null, string $parse_mode = 'html', bool $disable_notification = false, array $reply_markup = null, bool $protect_content = false, int $reply_to_message_id = null, $caption_entities = [], $allow_sending_without_reply = true)
+    public function sendPhoto($chat_id, $photo, string $caption = null, string $parse_mode = 'html', bool $disable_notification = false, array $reply_markup = null, bool $protect_content = false, int $reply_to_message_id = null, $caption_entities = [], $has_spoiler = false, $allow_sending_without_reply = true)
     {
-        return returnedMessage::create($this->bot('sendPhoto', compact('chat_id', 'photo', 'caption', 'parse_mode', 'reply_to_message_id', 'disable_notification', 'protect_content', 'reply_markup', 'caption_entities', 'allow_sending_without_reply')));
+        return returnedMessage::create($this->bot('sendPhoto', compact('chat_id', 'photo', 'caption', 'parse_mode', 'reply_to_message_id', 'disable_notification', 'protect_content', 'reply_markup', 'caption_entities', 'has_spoiler', 'allow_sending_without_reply')));
     }
 
     /**
@@ -140,17 +140,17 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendVideo($chat_id, string $video, string $caption = null, array $reply_markup = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, int $duration = null, int $width = null, int $height = null, string $thumb = null, string $parse_mode = 'html', bool $supports_streaming = true, $caption_entities = [], $allow_sending_without_reply = true)
+    public function sendVideo($chat_id, string $video, string $caption = null, array $reply_markup = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, int $duration = null, int $width = null, int $height = null, string $thumb = null, string $parse_mode = 'html', bool $supports_streaming = true, $caption_entities = [], bool $has_spoiler = false, $allow_sending_without_reply = true)
     {
-        return returnedMessage::create($this->bot('sendVideo', compact('chat_id', 'video', 'caption', 'duration', 'disable_notification', 'protect_content', 'width', 'height', 'reply_to_message_id', 'reply_markup', 'thumb', 'parse_mode', 'supports_streaming', 'caption_entities', 'allow_sending_without_reply')));
+        return returnedMessage::create($this->bot('sendVideo', compact('chat_id', 'video', 'caption', 'duration', 'disable_notification', 'protect_content', 'width', 'height', 'reply_to_message_id', 'reply_markup', 'thumb', 'parse_mode', 'supports_streaming', 'caption_entities', 'has_spoiler', 'allow_sending_without_reply')));
     }
 
     /**
      * @return returnedMessage
      */
-    public function sendAnimation($chat_id, string $animation, int $duration = null, int $width = null, int $height = null, string $thumb = null, string $caption = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, array $reply_markup = null, $caption_entities = [], $allow_sending_without_reply = true)
+    public function sendAnimation($chat_id, string $animation, int $duration = null, int $width = null, int $height = null, string $thumb = null, string $caption = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, array $reply_markup = null, $caption_entities = [], bool $has_spoiler = false, $allow_sending_without_reply = true)
     {
-        return returnedMessage::create($this->bot('sendAnimation', compact('chat_id', 'animation', 'caption', 'duration', 'disable_notification', 'protect_content', 'width', 'height', 'reply_to_message_id', 'reply_markup', 'thumb', 'caption_entities', 'allow_sending_without_reply')));
+        return returnedMessage::create($this->bot('sendAnimation', compact('chat_id', 'animation', 'caption', 'duration', 'disable_notification', 'protect_content', 'width', 'height', 'reply_to_message_id', 'reply_markup', 'thumb', 'caption_entities', 'has_spoiler', 'allow_sending_without_reply')));
     }
 
     /**
@@ -595,6 +595,13 @@ trait method
     {
         return returnedStickerSet::create($this->bot('getStickerSet', compact('name')));
     }
+    /**
+     * @return returnedArrayOfSticker
+     */
+    public function getCustomEmojiStickers( $custom_emoji_ids)
+    {
+        return returnedArrayOfSticker::create($this->bot('getCustomEmojiStickers', compact('custom_emoji_ids')));
+    }
 
     /**
      * @return returnedFile
@@ -607,17 +614,17 @@ trait method
     /**
      * @return returned
      */
-    public function createNewStickerSet(int $user_id, string $name, string $title, string $png_sticker = null, $tgs_sticker = null, string $emojis, bool $contains_masks = null, $mask_position = null)
+    public function createNewStickerSet(int $user_id, string $name, string $title, $stickers, $sticker_format = 'static', $sticker_type = 'regular', $needs_repainting = null)
     {
-        return returned::create($this->bot('createNewStickerSet', compact('user_id', 'name', 'title', 'png_sticker', 'tgs_sticker', 'emojis', 'contains_masks', 'mask_position')));
+        return returned::create($this->bot('createNewStickerSet', compact('user_id', 'name', 'title', 'stickers', 'sticker_format', 'sticker_type', 'needs_repainting')));
     }
 
     /**
      * @return returned
      */
-    public function addStickerToSet(int $user_id, string $name, string $png_sticker, string $emojis, $mask_position = null, $tgs_sticker = null)
+    public function addStickerToSet(int $user_id, string $name, $sticker)
     {
-        return returned::create($this->bot('addStickerToSet', compact('user_id', 'name', 'png_sticker', 'emojis', 'mask_position', 'tgs_sticker')));
+        return returned::create($this->bot('addStickerToSet', compact('user_id', 'name', 'sticker')));
     }
 
     /**
@@ -653,6 +660,25 @@ trait method
         $results = json_encode($results);
 
         return returned::create($this->bot('answerInlineQuery', compact('inline_query_id', 'results', 'cache_time', 'is_personal', 'next_offset', 'switch_pm_text', 'switch_pm_parameter')));
+    }
+
+    /**
+     * @return returnedSentWebAppMessage
+     */
+    public function answerWebAppQuery($web_app_query_id, $result)
+    {
+        $result = json_encode($result);
+
+        return returned::create($this->bot('answerWebAppQuery', compact('web_app_query_id', 'result')));
+    }
+
+    /**
+     * @return returned
+     */
+    public function SentWebAppMessage($inline_message_id)
+    {
+
+        return returned::create($this->bot('SentWebAppMessage', compact('inline_message_id')));
     }
 
     /**

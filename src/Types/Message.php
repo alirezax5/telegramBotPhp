@@ -37,6 +37,7 @@ use telegramBotApiPhp\Types\base;
  * @method Voice getVoice()
  * @method string getCaption()
  * @method ArrayOfMessageEntity getCaptionEntities()
+ * @method ArrayOfMessageEntity getHasMediaSpoiler()
  * @method Contact getContact()
  * @method Dice getDice()
  * @method Game getGame()
@@ -94,6 +95,7 @@ use telegramBotApiPhp\Types\base;
  * @method bool issetVoice()
  * @method bool issetCaption()
  * @method bool issetCaptionEntities()
+ * @method bool issetHasMediaSpoiler()
  * @method bool issetContact()
  * @method bool issetDice()
  * @method bool issetGame()
@@ -155,6 +157,7 @@ class Message extends base
         'voice' => Voice::class,
         'caption' => true,
         'caption_entities' => ArrayOfMessageEntity::class,
+        'has_media_spoiler' => true,
         'contact' => Contact::class,
         'dice' => Dice::class,
         'game' => Game::class,
@@ -214,6 +217,7 @@ class Message extends base
     protected $Voice;
     protected $Caption;
     protected $CaptionEntities;
+    protected $HasMediaSpoiler;
     protected $Contact;
     protected $Dice;
     protected $Game;

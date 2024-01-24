@@ -10,11 +10,15 @@ namespace telegramBotApiPhp\Types;
  * @method string getFileUniqueId()
  * @method int getWidth()
  * @method int getHeight()
+ * @method bool getIsVideo()
  * @method bool getIsAnimated()
  * @method PhotoSize getThumb()
  * @method string getEmoji()
  * @method string getSetName()
+ * @method string getPremiumAnimation()
  * @method MaskPosition getMaskPosition()
+ * @method string getCustomEmojiId()
+ * @method bool getNeedsRepainting()
  * @method int getFileSize()
  */
 class Sticker extends base
@@ -25,10 +29,14 @@ class Sticker extends base
         'width' => true,
         'height' => true,
         'is_animated' => true,
+        'is_video' => true,
         'thumb' => PhotoSize::class,
         'emoji' => true,
         'set_name' => true,
+        'premium_animation' => File::class,
         'mask_position' => MaskPosition::class,
+        'custom_emoji_id' => true,
+        'needs_repainting' => true,
         'file_size' => true,
     ];
 
@@ -37,10 +45,14 @@ class Sticker extends base
     protected $Width;
     protected $Height;
     protected $IsAnimated;
+    protected $IsVideo;
     protected $Thumb;
     protected $Emoji;
     protected $SetName;
+    protected $PremiumAnimation;
     protected $MaskPosition;
+    protected $CustomEmojiId;
+    protected $NeedsRepainting;
     protected $FileSize;
 
     protected function init($key, $value)
