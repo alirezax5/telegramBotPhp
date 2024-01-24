@@ -19,6 +19,7 @@ namespace telegramBotApiPhp\Types;
  * @method string getStickerSetName()
  * @method bool getCanSetStickerSet()
  * @method string getBio()
+ * @method bool getHasPrivateForwards()
  * @method bool getHasProtectedContent()
  * @method bool getIsAutomaticForward()
  * @method Permissions getPermissions()
@@ -27,9 +28,6 @@ namespace telegramBotApiPhp\Types;
  * @method bool issetId()
  * @method bool issetType()
  * @method bool issetTitle()
- * @method bool getHasPrivateForwards()
- * @method bool getJoinToSendMessages()
- * @method bool getJoinByRequest()
  * @method bool issetFastName()
  * @method bool issetLastName()
  * @method bool issetUsername()
@@ -41,8 +39,6 @@ namespace telegramBotApiPhp\Types;
  * @method bool issetCanSetStickerSet()
  * @method bool issetBio()
  * @method bool issetHasPrivateForwards()
- * @method bool issetJoinToSendMessages()
- * @method bool issetJoinByRequest()
  * @method bool issetHasProtectedContent()
  * @method bool issetIsAutomaticForward()
  * @method bool issetPermissions()
@@ -62,9 +58,7 @@ class Chat extends base
         'photo' => ChatPhoto::class,
         'bio' => true,
         'has_private_forwards' => true,
-        'join_to_send_messages' => true,
         'has_protected_content' => true,
-        'join_by_request' => true,
         'is_automatic_forward' => true,
         'description' => true,
         'invite_link' => true,
@@ -90,8 +84,6 @@ class Chat extends base
     protected $CanSetStickerSet;
     protected $Bio;
     protected $HasPrivateForwards;
-    protected $JoinToSendMessages;
-    protected $JoinByRequest;
     protected $HasProtectedContent;
     protected $IsAutomaticForward;
     protected $Permissions;

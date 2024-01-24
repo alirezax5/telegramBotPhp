@@ -9,7 +9,7 @@ namespace telegramBotApiPhp\Types;
  * @method bool getOk()
  * @method int getErrorCode()
  * @method string getDescription()
- * @method ArrayOfMessage getResult()
+ * @method Message getResult()
  * @method bool issetOk()
  * @method bool issetErrorCode()
  * @method bool issetDescription()
@@ -21,7 +21,7 @@ class returnedMessage extends base
         'ok' => true,
         'error_code' => true,
         'description' => true,
-        'result' => ArrayOfMessage::class,
+        'result' => Message::class,
     ];
 
     protected $Ok;
