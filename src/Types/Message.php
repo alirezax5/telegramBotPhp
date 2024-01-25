@@ -20,6 +20,9 @@ use telegramBotApiPhp\Types\base;
  * @method string getForwardSignature()
  * @method string getForwardSenderName()
  * @method Message getReplyToMessage()
+ * @method MessageOrigin getForwardOrigin()
+ * @method bool getIsTopicMessage()
+ * @method bool getIsAautomaticForward()
  * @method int getEditDate()
  * @method int getMediaGroupId()
  * @method bool getHasProtectedContent()
@@ -77,6 +80,9 @@ use telegramBotApiPhp\Types\base;
  * @method bool issetForwardDate()
  * @method bool issetForwardSignature()
  * @method bool issetForwardSenderName()
+ * @method bool issetForwardOrigin()
+ * @method bool issetIsTopicMessage()
+ * @method bool issetIsAautomaticForward()
  * @method bool issetReplyToMessage()
  * @method bool issetEditDate()
  * @method bool issetMediaGroupId()
@@ -139,6 +145,9 @@ class Message extends base
         'forward_date' => true,
         'forward_signature' => true,
         'forward_sender_name' => true,
+        'forward_origin' => MessageOrigin::class,
+        'is_topic_message' => true,
+        'is_automatic_forward' => true,
         'reply_to_message' => Message::class,
         'edit_date' => true,
         'media_group_id' => true,
@@ -200,6 +209,9 @@ class Message extends base
     protected $ForwardDate;
     protected $ForwardSignature;
     protected $ForwardSenderName;
+    protected $ForwardOrigin;
+    protected $IsTopicMessage;
+    protected $IsAautomaticForward;
     protected $ReplyToMessage;
     protected $EditDate;
     protected $MediaGroupId;
