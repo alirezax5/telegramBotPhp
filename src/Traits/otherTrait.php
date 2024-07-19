@@ -31,6 +31,7 @@ trait otherTrait
         $this->caches['message_id'] = $message_id;
         return $message_id;
     }
+
     public function text()
     {
         $text = null;
@@ -51,7 +52,8 @@ trait otherTrait
         }
         if ($this->isEditedChannelPost()) {
             $text = $this->edited_channel_post()->getText();
-        }  if ($this->isInlineQuery()) {
+        }
+        if ($this->isInlineQuery()) {
             $text = $this->inline_query()->getQuery();
         }
         $this->caches['text'] = $text;
@@ -86,6 +88,9 @@ trait otherTrait
         if ($this->isInlineQuery()) {
             $fromId = $this->inline_query()->getFrom()->getId();
         }
+        if ($this->isPreCheckoutQuery()) {
+            $fromId = $this->pre_checkout_query()->getFrom()->getId();
+        }
         $this->caches['fromId'] = $fromId;
         return $fromId;
     }
@@ -114,6 +119,9 @@ trait otherTrait
         if ($this->isEditedChannelPost()) {
             $chatId = $this->edited_channel_post()->getChat()->getId();
         }
+        if ($this->isPreCheckoutQuery()) {
+            $chatId = $this->pre_checkout_query()->getFrom()->getId();
+        }
         $this->caches['chatId'] = $chatId;
         return $chatId;
     }
@@ -125,26 +133,93 @@ trait otherTrait
             return $this->caches['firstName'];
         }
         if ($this->isMessage()) {
-            $firstName = $this->message()->getFrom()->getfirstName();
+            $firstName = $this->message()->getFrom()->getFirstName();
         }
         if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
-            $firstName = $this->callback_query()->getMessage()->getFrom()->getfirstName();
+            $firstName = $this->callback_query()->getMessage()->getFrom()->getFirstName();
         }
         if ($this->isChannelPost()) {
-            $firstName = $this->channel_post()->getFrom()->getfirstName();
+            $firstName = $this->channel_post()->getFrom()->getFirstName();
         }
         if ($this->isEditedMessage()) {
-            $firstName = $this->edited_message()->getFrom()->getfirstName();
+            $firstName = $this->edited_message()->getFrom()->getFirstName();
 
         }
         if ($this->isEditedChannelPost()) {
-            $firstName = $this->edited_channel_post()->getFrom()->getfirstName();
+            $firstName = $this->edited_channel_post()->getFrom()->getFirstName();
         }
         if ($this->isInlineQuery()) {
             $firstName = $this->inline_query()->getFrom()->getFirstName();
         }
+        if ($this->isPreCheckoutQuery()) {
+            $firstName = $this->pre_checkout_query()->getFrom()->getFirstName();
+        }
         $this->caches['firstName'] = $firstName;
         return $firstName;
+    }
+
+    public function languageCode()
+    {
+        $language_code = null;
+        if ($this->caches['language_code'] != null) {
+            return $this->caches['language_code'];
+        }
+        if ($this->isMessage()) {
+            $language_code = $this->message()->getFrom()->getLanguageCode();
+        }
+        if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
+            $language_code = $this->callback_query()->getMessage()->getFrom()->getLanguageCode();
+        }
+        if ($this->isChannelPost()) {
+            $language_code = $this->channel_post()->getFrom()->getLanguageCode();
+        }
+        if ($this->isEditedMessage()) {
+            $language_code = $this->edited_message()->getFrom()->getLanguageCode();
+
+        }
+        if ($this->isEditedChannelPost()) {
+            $language_code = $this->edited_channel_post()->getFrom()->getLanguageCode();
+        }
+        if ($this->isInlineQuery()) {
+            $language_code = $this->inline_query()->getFrom()->getLanguageCode();
+        }
+        if ($this->isPreCheckoutQuery()) {
+            $language_code = $this->pre_checkout_query()->getFrom()->getLanguageCode();
+        }
+        $this->caches['language_code'] = $language_code;
+        return $language_code;
+    }
+
+    public function isPremium()
+    {
+        $is_premium = null;
+        if ($this->caches['is_premium'] != null) {
+            return $this->caches['is_premium'];
+        }
+        if ($this->isMessage()) {
+            $is_premium = $this->message()->getFrom()->getIsPremium();
+        }
+        if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
+            $is_premium = $this->callback_query()->getMessage()->getFrom()->getIsPremium();
+        }
+        if ($this->isChannelPost()) {
+            $is_premium = $this->channel_post()->getFrom()->getIsPremium();
+        }
+        if ($this->isEditedMessage()) {
+            $is_premium = $this->edited_message()->getFrom()->getIsPremium();
+
+        }
+        if ($this->isEditedChannelPost()) {
+            $is_premium = $this->edited_channel_post()->getFrom()->getIsPremium();
+        }
+        if ($this->isInlineQuery()) {
+            $is_premium = $this->inline_query()->getFrom()->getIsPremium();
+        }
+        if ($this->isPreCheckoutQuery()) {
+            $is_premium = $this->pre_checkout_query()->getFrom()->getIsPremium();
+        }
+        $this->caches['is_premium'] = $is_premium;
+        return $is_premium;
     }
 
     public function lastName()
@@ -168,6 +243,9 @@ trait otherTrait
         }
         if ($this->isEditedChannelPost()) {
             $lastName = $this->edited_channel_post()->getFrom()->issetlastName() == true ? $this->edited_channel_post()->getFrom()->getlastName() : null;
+        }
+        if ($this->isPreCheckoutQuery()) {
+            $lastName = $this->pre_checkout_query()->getFrom()->getLastName();
         }
         $this->caches['lastName'] = $lastName;
         return $lastName;
@@ -198,6 +276,9 @@ trait otherTrait
         }
         if ($this->isEditedChannelPost()) {
             $username = $this->edited_channel_post()->getFrom()->issetUsername() == true ? $this->edited_channel_post()->getFrom()->getUsername() : null;
+        }
+        if ($this->isPreCheckoutQuery()) {
+            $username = $this->pre_checkout_query()->getFrom()->getUsername();
         }
         $this->caches['username'] = $username;
         return $username;
@@ -255,7 +336,7 @@ trait otherTrait
             return $this->caches['mediaType'];
         }
         $type = null;
-        if ($this->message() && $this->message()->issetText()){
+        if ($this->message() && $this->message()->issetText()) {
             $type = self::_TEXT;
         }
         if ($this->message()->issetVideo()) {

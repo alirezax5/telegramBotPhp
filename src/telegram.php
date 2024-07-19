@@ -70,6 +70,8 @@ class telegram
         'lastName' => null,
         'username' => null,
         'caption' => null,
+        'language_code' => null,
+        'is_premium' => null,
     ];
 
     //region init
@@ -177,6 +179,7 @@ class telegram
         }
         return $cache;
     }
+
 
     /**
      * @return Message
