@@ -15,7 +15,7 @@ namespace telegramBotApiPhp\Types;
  * @method bool getIsForum()
  * @method ChatPhoto getPhoto()
  * @method array getActiveUsernames()
- * @method array getAvailableReactions()
+ * @method ArrayOfReactiontype getAvailableReactions()
  * @method string getDescription()
  * @method string getInviteLink()
  * @method message getPinnedMessage()
@@ -84,7 +84,7 @@ class Chat extends base
         'is_forum' => true,
         'photo' => ChatPhoto::class,
         'active_usernames' => true,
-        'available_reactions' => true,
+        'available_reactions' => ArrayOfReactiontype::class,
         'accent_color_id' => true,
         'background_custom_emoji_id' => true,
         'profile_accent_color_id' => true,

@@ -8,255 +8,263 @@ use telegramBotApiPhp\Types\base;
 /**
  * Class message
  * @package telegramBotApiPhp\Types
- * @method int getDate()
- * @method string getText()
- * @method int getMessageId()
- * @method User getFrom()
- * @method Chat getChat()
- * @method User getForwardFrom()
- * @method Chat getForwardFromChat()
- * @method int getForwardFromMessageId()
- * @method int getForwardDate()
- * @method string getForwardSignature()
- * @method string getForwardSenderName()
- * @method Message getReplyToMessage()
- * @method MessageOrigin getForwardOrigin()
- * @method bool getIsTopicMessage()
- * @method bool getIsAautomaticForward()
- * @method int getEditDate()
- * @method int getMediaGroupId()
- * @method bool getHasProtectedContent()
- * @method string getAuthorSignature()
- * @method Chat getSenderChat()
- * @method User getViaBot()
- * @method ArrayOfMessageEntity getEntities()
  * @method Animation getAnimation()
- * @method Audio getAudio()
- * @method Document getDocument()
- * @method ArrayOfPhotoSize getPhoto()
- * @method Sticker getSticker()
- * @method Video getVideo()
- * @method VideoNote getVideoNote()
- * @method Voice getVoice()
- * @method string getCaption()
  * @method ArrayOfMessageEntity getCaptionEntities()
+ * @method ArrayOfMessageEntity getEntities()
  * @method ArrayOfMessageEntity getHasMediaSpoiler()
+ * @method ArrayOfPhotoSize getPhoto()
+ * @method ArrayOfUser getNewChatMembers()
+ * @method Audio getAudio()
+ * @method Chat getChat()
+ * @method Chat getForwardFromChat()
+ * @method Chat getSenderChat()
+ * @method ChatShared getChatShared()
  * @method Contact getContact()
  * @method Dice getDice()
+ * @method Document getDocument()
  * @method Game getGame()
- * @method Poll getPoll()
- * @method Venue getVenue()
+ * @method Invoice getInvoice()
  * @method Location getLocation()
- * @method ArrayOfUser getNewChatMembers()
- * @method User getLeftChatMember()
- * @method string getNewChatTitle()
+ * @method Message getPinnedMessage()
+ * @method Message getReplyToMessage()
+ * @method MessageAutoDeleteTimerChanged getMessageAutoDeleteTimerChanged()
+ * @method MessageOrigin getForwardOrigin()
+ * @method PassportData getPassportData()
  * @method PhotoSize getNewChatPhoto()
+ * @method Poll getPoll()
+ * @method ProximityAlertTriggered getProximityAlertTriggered()
+ * @method Sticker getSticker()
+ * @method SuccessfulPayment getSuccessfulPayment()
+ * @method User getForwardFrom()
+ * @method User getFrom()
+ * @method User getLeftChatMember()
+ * @method User getViaBot()
+ * @method UsersShared getUsersShared()
+ * @method Venue getVenue()
+ * @method Video getVideo()
+ * @method VideoChatEnded getVideoChatEnded()
+ * @method VideoChatParticipantsInvited getVideoChatParticipantsInvited()
+ * @method VideoChatScheduled getVideoChatScheduled()
+ * @method VideoChatStarted getVideoChatStarted()
+ * @method VideoNote getVideoNote()
+ * @method Voice getVoice()
+ * @method WebAppData getWebAppData()
+ * @method bool getChannelChatCreated()
  * @method bool getDeleteChatPhoto()
  * @method bool getGroupChatCreated()
+ * @method bool getHasProtectedContent()
+ * @method bool getIsAautomaticForward()
+ * @method bool getIsTopicMessage()
  * @method bool getSupergroupChatCreated()
- * @method bool getChannelChatCreated()
- * @method int getMigrateToChatId()
- * @method MessageAutoDeleteTimerChanged getMessageAutoDeleteTimerChanged()
+ * @method int getDate()
+ * @method int getEditDate()
+ * @method int getForwardDate()
+ * @method int getForwardFromMessageId()
+ * @method int getMediaGroupId()
+ * @method int getMessageId()
  * @method int getMigrateFromChatId()
- * @method Message getPinnedMessage()
- * @method Invoice getInvoice()
- * @method SuccessfulPayment getSuccessfulPayment()
+ * @method int getMigrateToChatId()
+ * @method string getAuthorSignature()
+ * @method string getCaption()
  * @method string getConnectedWebsite()
- * @method PassportData getPassportData()
- * @method ProximityAlertTriggered getProximityAlertTriggered()
- * @method VideoChatStarted getVideoChatStarted()
- * @method VideoChatEnded getVideoChatEnded()
- * @method VideoChatScheduled getVideoChatScheduled()
- * @method VideoChatParticipantsInvited getVideoChatParticipantsInvited()
- * @method WebAppData getWebAppData()
- * @method bool issetDate()
- * @method bool issetText()
- * @method bool issetMessageId()
- * @method bool issetFrom()
+ * @method string getForwardSenderName()
+ * @method string getForwardSignature()
+ * @method string getNewChatTitle()
+ * @method string getText()
+ * @method bool issetAnimation()
+ * @method bool issetAudio()
+ * @method bool issetAuthorSignature()
+ * @method bool issetCaption()
+ * @method bool issetCaptionEntities()
+ * @method bool issetChannelChatCreated()
  * @method bool issetChat()
+ * @method bool issetChatShared()
+ * @method bool issetConnectedWebsite()
+ * @method bool issetContact()
+ * @method bool issetDate()
+ * @method bool issetDeleteChatPhoto()
+ * @method bool issetDice()
+ * @method bool issetDocument()
+ * @method bool issetEditDate()
+ * @method bool issetEntities()
+ * @method bool issetForwardDate()
  * @method bool issetForwardFrom()
  * @method bool issetForwardFromChat()
  * @method bool issetForwardFromMessageId()
- * @method bool issetForwardDate()
- * @method bool issetForwardSignature()
- * @method bool issetForwardSenderName()
  * @method bool issetForwardOrigin()
- * @method bool issetIsTopicMessage()
- * @method bool issetIsAautomaticForward()
- * @method bool issetReplyToMessage()
- * @method bool issetEditDate()
- * @method bool issetMediaGroupId()
+ * @method bool issetForwardSenderName()
+ * @method bool issetForwardSignature()
+ * @method bool issetFrom()
+ * @method bool issetGame()
+ * @method bool issetGroupChatCreated()
+ * @method bool issetHasMediaSpoiler()
  * @method bool issetHasProtectedContent()
- * @method bool issetAuthorSignature()
- * @method bool issetSenderChat()
- * @method bool issetViaBot()
- * @method bool issetEntities()
- * @method bool issetAnimation()
- * @method bool issetAudio()
- * @method bool issetDocument()
+ * @method bool issetInvoice()
+ * @method bool issetIsAautomaticForward()
+ * @method bool issetIsTopicMessage()
+ * @method bool issetLeftChatMember()
+ * @method bool issetLocation()
+ * @method bool issetMediaGroupId()
+ * @method bool issetMessageAutoDeleteTimerChanged()
+ * @method bool issetMessageId()
+ * @method bool issetMigrateFromChatId()
+ * @method bool issetMigrateToChatId()
+ * @method bool issetNewChatMembers()
+ * @method bool issetNewChatPhoto()
+ * @method bool issetNewChatTitle()
+ * @method bool issetPassportData()
  * @method bool issetPhoto()
+ * @method bool issetPinnedMessage()
+ * @method bool issetPoll()
+ * @method bool issetProximityAlertTriggered()
+ * @method bool issetReplyToMessage()
+ * @method bool issetSenderChat()
  * @method bool issetSticker()
+ * @method bool issetSuccessfulPayment()
+ * @method bool issetSupergroupChatCreated()
+ * @method bool issetText()
+ * @method bool issetUsersShared()
+ * @method bool issetVenue()
+ * @method bool issetViaBot()
  * @method bool issetVideo()
+ * @method bool issetVideoChatEnded()
+ * @method bool issetVideoChatParticipantsInvited()
+ * @method bool issetVideoChatScheduled()
+ * @method bool issetVideoChatStarted()
  * @method bool issetVideoNote()
  * @method bool issetVoice()
- * @method bool issetCaption()
- * @method bool issetCaptionEntities()
- * @method bool issetHasMediaSpoiler()
- * @method bool issetContact()
- * @method bool issetDice()
- * @method bool issetGame()
- * @method bool issetPoll()
- * @method bool issetVenue()
- * @method bool issetLocation()
- * @method bool issetNewChatMembers()
- * @method bool issetLeftChatMember()
- * @method bool issetNewChatTitle()
- * @method bool issetNewChatPhoto()
- * @method bool issetDeleteChatPhoto()
- * @method bool issetGroupChatCreated()
- * @method bool issetSupergroupChatCreated()
- * @method bool issetChannelChatCreated()
- * @method bool issetMigrateToChatId()
- * @method bool issetMessageAutoDeleteTimerChanged()
- * @method bool issetMigrateFromChatId()
- * @method bool issetPinnedMessage()
- * @method bool issetInvoice()
- * @method bool issetSuccessfulPayment()
- * @method bool issetConnectedWebsite()
- * @method bool issetPassportData()
- * @method bool issetProximityAlertTriggered()
- * @method bool issetVideoChatStarted()
- * @method bool issetVideoChatEnded()
- * @method bool issetVideoChatScheduled()
- * @method bool issetVideoChatParticipantsInvited()
  * @method bool issetWebAppData()
  */
 class Message extends base
 {
     static protected $map = [
-        'message_id' => true,
-        'date' => true,
-        'text' => true,
-        'from' => User::class,
+        'animation' => Animation::class,
+        'audio' => Audio::class,
+        'author_signature' => true,
+        'caption' => true,
+        'caption_entities' => ArrayOfMessageEntity::class,
+        'channel_chat_created' => true,
         'chat' => Chat::class,
+        'chat_shared' => ChatShared::class,
+        'connected_website' => true,
+        'contact' => Contact::class,
+        'date' => true,
+        'delete_chat_photo' => true,
+        'dice' => Dice::class,
+        'document' => Document::class,
+        'edit_date' => true,
+        'entities' => ArrayOfMessageEntity::class,
+        'forward_date' => true,
         'forward_from' => User::class,
         'forward_from_chat' => Chat::class,
         'forward_from_message_id' => true,
-        'forward_date' => true,
-        'forward_signature' => true,
-        'forward_sender_name' => true,
         'forward_origin' => MessageOrigin::class,
-        'is_topic_message' => true,
-        'is_automatic_forward' => true,
-        'reply_to_message' => Message::class,
-        'edit_date' => true,
-        'media_group_id' => true,
+        'forward_sender_name' => true,
+        'forward_signature' => true,
+        'from' => User::class,
+        'game' => Game::class,
+        'group_chat_created' => true,
+        'has_media_spoiler' => true,
         'has_protected_content' => true,
-        'author_signature' => true,
-        'sender_chat' => Chat::class,
-        'via_bot' => User::class,
-        'entities' => ArrayOfMessageEntity::class,
-        'animation' => Animation::class,
-        'audio' => Audio::class,
-        'document' => Document::class,
+        'invoice' => Invoice::class,
+        'is_automatic_forward' => true,
+        'is_topic_message' => true,
+        'left_chat_member' => User::class,
+        'location' => Location::class,
+        'media_group_id' => true,
+        'message_auto_delete_timer_changed' => MessageAutoDeleteTimerChanged::class,
+        'message_id' => true,
+        'migrate_from_chat_id' => true,
+        'migrate_to_chat_id' => true,
+        'new_chat_members' => ArrayOfUser::class,
+        'new_chat_photo' => ArrayOfPhotoSize::class,
+        'new_chat_title' => true,
+        'passport_data' => PassportData::class,
         'photo' => ArrayOfPhotoSize::class,
+        'pinned_message' => Message::class,
+        'poll' => Poll::class,
+        'proximity_alert_triggered' => ProximityAlertTriggered::class,
+        'reply_to_message' => Message::class,
+        'sender_chat' => Chat::class,
         'sticker' => Sticker::class,
+        'successful_payment' => SuccessfulPayment::class,
+        'supergroup_chat_created' => true,
+        'text' => true,
+        'users_shared' => UsersShared::class,
+        'venue' => Venue::class,
+        'via_bot' => User::class,
         'video' => Video::class,
+        'video_chat_ended' => VideoChatEnded::class,
+        'video_chat_participants_invited' => VideoChatParticipantsInvited::class,
+        'video_chat_scheduled' => VideoChatScheduled::class,
+        'video_chat_started' => VideoChatStarted::class,
         'video_note' => VideoNote::class,
         'voice' => Voice::class,
-        'caption' => true,
-        'caption_entities' => ArrayOfMessageEntity::class,
-        'has_media_spoiler' => true,
-        'contact' => Contact::class,
-        'dice' => Dice::class,
-        'game' => Game::class,
-        'poll' => Poll::class,
-        'venue' => Venue::class,
-        'location' => Location::class,
-        'new_chat_members' => ArrayOfUser::class,
-        'left_chat_member' => User::class,
-        'new_chat_title' => true,
-        'new_chat_photo' => ArrayOfPhotoSize::class,
-        'delete_chat_photo' => true,
-        'group_chat_created' => true,
-        'supergroup_chat_created' => true,
-        'channel_chat_created' => true,
-        'migrate_to_chat_id' => true,
-        'message_auto_delete_timer_changed' => MessageAutoDeleteTimerChanged::class,
-        'migrate_from_chat_id' => true,
-        'pinned_message' => Message::class,
-        'invoice' => Invoice::class,
-        'successful_payment' => SuccessfulPayment::class,
-        'connected_website' => true,
-        'passport_data' => PassportData::class,
-        'proximity_alert_triggered' => ProximityAlertTriggered::class,
-        'video_chat_started' => VideoChatStarted::class,
-        'video_chat_ended' => VideoChatEnded::class,
-        'video_chat_scheduled' => VideoChatScheduled::class,
         'web_app_data' => WebAppData::class,
-        'video_chat_participants_invited' => VideoChatParticipantsInvited::class,
     ];
 
-    protected $MessageId;
-    protected $Text;
-    protected $Date;
-    protected $From;
-    protected $SenderChat;
+    protected $Animation;
+    protected $Audio;
+    protected $AuthorSignature;
+    protected $Caption;
+    protected $CaptionEntities;
+    protected $ChannelChatCreated;
     protected $Chat;
+    protected $ChatShared;
+    protected $ConnectedWebsite;
+    protected $Contact;
+    protected $Date;
+    protected $DeleteChatPhoto;
+    protected $Dice;
+    protected $Document;
+    protected $EditDate;
+    protected $Entities;
+    protected $ForwardDate;
     protected $ForwardFrom;
     protected $ForwardFromChat;
     protected $ForwardFromMessageId;
-    protected $ForwardDate;
-    protected $ForwardSignature;
-    protected $ForwardSenderName;
     protected $ForwardOrigin;
-    protected $IsTopicMessage;
-    protected $IsAautomaticForward;
-    protected $ReplyToMessage;
-    protected $EditDate;
-    protected $MediaGroupId;
+    protected $ForwardSenderName;
+    protected $ForwardSignature;
+    protected $From;
+    protected $Game;
+    protected $GroupChatCreated;
+    protected $HasMediaSpoiler;
     protected $HasProtectedContent;
-    protected $AuthorSignature;
-    protected $ViaBot;
-    protected $Entities;
-    protected $Animation;
-    protected $Audio;
-    protected $Document;
+    protected $Invoice;
+    protected $IsAautomaticForward;
+    protected $IsTopicMessage;
+    protected $LeftChatMember;
+    protected $Location;
+    protected $MediaGroupId;
+    protected $MessageAutoDeleteTimerChanged;
+    protected $MessageId;
+    protected $MigrateFromChatId;
+    protected $MigrateToChatId;
+    protected $NewChatMembers;
+    protected $NewChatPhoto;
+    protected $NewChatTitle;
+    protected $PassportData;
     protected $Photo;
+    protected $PinnedMessage;
+    protected $Poll;
+    protected $ProximityAlertTriggered;
+    protected $ReplyToMessage;
+    protected $SenderChat;
     protected $Sticker;
+    protected $SuccessfulPayment;
+    protected $SupergroupChatCreated;
+    protected $Text;
+    protected $UsersShared;
+    protected $Venue;
+    protected $ViaBot;
     protected $Video;
+    protected $VideoChatEnded;
+    protected $VideoChatParticipantsInvited;
+    protected $VideoChatScheduled;
+    protected $VideoChatStarted;
     protected $VideoNote;
     protected $Voice;
-    protected $Caption;
-    protected $CaptionEntities;
-    protected $HasMediaSpoiler;
-    protected $Contact;
-    protected $Dice;
-    protected $Game;
-    protected $Poll;
-    protected $Venue;
-    protected $Location;
-    protected $NewChatMembers;
-    protected $LeftChatMember;
-    protected $NewChatTitle;
-    protected $NewChatPhoto;
-    protected $DeleteChatPhoto;
-    protected $GroupChatCreated;
-    protected $SupergroupChatCreated;
-    protected $ChannelChatCreated;
-    protected $MigrateToChatId;
-    protected $MessageAutoDeleteTimerChanged;
-    protected $MigrateFromChatId;
-    protected $PinnedMessage;
-    protected $Invoice;
-    protected $SuccessfulPayment;
-    protected $ConnectedWebsite;
-    protected $PassportData;
-    protected $ProximityAlertTriggered;
-    protected $VideoChatStarted;
-    protected $VideoChatEnded;
-    protected $VideoChatScheduled;
-    protected $VideoChatParticipantsInvited;
     protected $WebAppData;
 
     protected function init($key, $value)

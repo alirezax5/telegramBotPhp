@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="WEB_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" packagePrefix="telegramBotApiPhp\" />
+      <sourceFolder url="file://$MODULE_DIR$/src/Traits" isTestSource="false" packagePrefix="telegramBotApiPhp\Traits\" />
+      <sourceFolder url="file://$MODULE_DIR$/src/Types" isTestSource="false" packagePrefix="telegramBotApiPhp\Types\" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
