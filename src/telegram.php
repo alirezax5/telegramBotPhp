@@ -43,7 +43,7 @@ class telegram
     public $reqData;
     public $bot_token;
     public $url = 'https://api.telegram.org/bot{token}/{method}';
-    public $urlFile = 'https://api.telegram.org/file/bot';
+    public $urlFile = 'https://api.telegram.org/file/{token}';
     private $cacheTypes = [
         'Message' => null,
         'edited_message' => null,
