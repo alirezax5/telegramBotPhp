@@ -42,8 +42,9 @@ class telegram
     public $data = [];
     public $reqData;
     public $bot_token;
-    public $url = 'https://api.telegram.org/bot{token}/{method}';
-    public $urlFile = 'https://api.telegram.org/file/bot{token}/';
+    public $urlForRequest;
+    public $url = '{url}/bot{token}/{method}';
+    public $urlFile = '{url}/file/bot{token}/';
     private $cacheTypes = [
         'Message' => null,
         'edited_message' => null,
@@ -75,8 +76,10 @@ class telegram
     ];
 
     //region init
-    public function __construct(string $token)
+    public function __construct(string $token, $urlForRequest = 'https://api.telegram.org/')
     {
+
+        $this->urlForRequest = (string)$urlForRequest;
         $this->bot_token = (string)$token;
         $this->clearCache();
         $this->Set_data();
@@ -137,7 +140,7 @@ class telegram
 
     private function getReadlUrl($method)
     {
-        return strtr($this->url, ['{token}' => $this->bot_token, '{method}' => $method]);
+        return strtr($this->url, ['{token}' => $this->bot_token, '{method}' => $method, '{url}' => $this->urlForRequest]);
     }
 
     private function checkData($datas)
