@@ -76,7 +76,7 @@ class telegram
     ];
 
     //region init
-    public function __construct(string $token, $urlForRequest = 'https://api.telegram.org/')
+    public function __construct(string $token, $urlForRequest = 'https://api.telegram.org')
     {
 
         $this->urlForRequest = (string)$urlForRequest;
