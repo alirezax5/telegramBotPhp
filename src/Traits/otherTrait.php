@@ -485,6 +485,6 @@ trait otherTrait
 
     public function pathToUrl($path)
     {
-        return strtr($this->urlFile, ['{token}' => $this->bot_token])  . $path;
+        return strtr($this->urlFile, ['{token}' => $this->bot_token,'{url}' => $this->urlForRequest])  . $path;
     }
 }
