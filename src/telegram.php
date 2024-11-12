@@ -44,7 +44,7 @@ class telegram
     public $bot_token;
     public $urlForRequest;
     public $url = '{url}/bot{token}/{method}';
-    public $urlFile = '{url}/file/bot{token}/';
+    public $urlFile = '{url}/file/bot{token}';
     private $cacheTypes = [
         'Message' => null,
         'edited_message' => null,
