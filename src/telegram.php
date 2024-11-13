@@ -76,10 +76,11 @@ class telegram
     ];
 
     //region init
-    public function __construct(string $token, $urlForRequest = 'https://api.telegram.org')
+    public function __construct(string $token, $urlForRequest = 'https://api.telegram.org',$urlForFile = '{url}/file/bot{token}')
     {
 
         $this->urlForRequest = (string)$urlForRequest;
+        $this->urlFile = (string)$urlForFile;
         $this->bot_token = (string)$token;
         $this->clearCache();
         $this->Set_data();
