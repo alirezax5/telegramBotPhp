@@ -125,7 +125,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendAudio($chat_id, string $audio, string $caption = null, array $reply_markup = null, string $performer = null, string $title = null, int $duration = null, string $thumb = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, $caption_entities = [], $allow_sending_without_reply = true, $show_caption_above_media = false, $allow_paid_broadcast = false,$message_effect_id = false)
+    public function sendAudio($chat_id,  $audio, string $caption = null, array $reply_markup = null, string $performer = null, string $title = null, int $duration = null, string $thumb = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, $caption_entities = [], $allow_sending_without_reply = true, $show_caption_above_media = false, $allow_paid_broadcast = false,$message_effect_id = false)
     {
         return returnedMessage::create($this->bot('sendAudio', compact('chat_id', 'audio', 'caption', 'duration', 'performer', 'title', 'thumb', 'disable_notification', 'protect_content', 'reply_to_message_id', 'reply_markup', 'caption_entities', 'allow_sending_without_reply', 'allow_paid_broadcast', 'show_caption_above_media','message_effect_id')));
     }
@@ -141,7 +141,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendVideo($chat_id, string $video, string $caption = null, array $reply_markup = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, int $duration = null, int $width = null, int $height = null, string $thumb = null, string $parse_mode = 'html', bool $supports_streaming = true, $caption_entities = [], bool $has_spoiler = false, $allow_sending_without_reply = true, $show_caption_above_media = false, $allow_paid_broadcast = false,$message_effect_id = false)
+    public function sendVideo($chat_id,  $video, string $caption = null, array $reply_markup = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, int $duration = null, int $width = null, int $height = null, string $thumb = null, string $parse_mode = 'html', bool $supports_streaming = true, $caption_entities = [], bool $has_spoiler = false, $allow_sending_without_reply = true, $show_caption_above_media = false, $allow_paid_broadcast = false,$message_effect_id = false)
     {
         return returnedMessage::create($this->bot('sendVideo', compact('chat_id', 'video', 'caption', 'duration', 'disable_notification', 'protect_content', 'width', 'height', 'reply_to_message_id', 'reply_markup', 'thumb', 'parse_mode', 'supports_streaming', 'caption_entities', 'has_spoiler', 'allow_sending_without_reply', 'allow_paid_broadcast', 'show_caption_above_media','message_effect_id')));
     }
@@ -149,7 +149,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendAnimation($chat_id, string $animation, int $duration = null, int $width = null, int $height = null, string $thumb = null, string $caption = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, array $reply_markup = null, $caption_entities = [], bool $has_spoiler = false, $allow_sending_without_reply = true, $allow_paid_broadcast = false,$message_effect_id = false)
+    public function sendAnimation($chat_id,  $animation, int $duration = null, int $width = null, int $height = null, string $thumb = null, string $caption = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, array $reply_markup = null, $caption_entities = [], bool $has_spoiler = false, $allow_sending_without_reply = true, $allow_paid_broadcast = false,$message_effect_id = false)
     {
         return returnedMessage::create($this->bot('sendAnimation', compact('chat_id', 'animation', 'caption', 'duration', 'disable_notification', 'protect_content', 'width', 'height', 'reply_to_message_id', 'reply_markup', 'thumb', 'caption_entities', 'has_spoiler', 'allow_sending_without_reply', 'allow_paid_broadcast','message_effect_id')));
     }
@@ -157,7 +157,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendVoice($chat_id, string $voice, string $caption = null, string $parse_mode = 'html', bool $disable_notification = false, bool $protect_content = false, array $reply_markup = null, int $reply_to_message_id = null, int $duration = null, $caption_entities = [], $allow_sending_without_reply = true, $allow_paid_broadcast = false,$message_effect_id = false)
+    public function sendVoice($chat_id,  $voice, string $caption = null, string $parse_mode = 'html', bool $disable_notification = false, bool $protect_content = false, array $reply_markup = null, int $reply_to_message_id = null, int $duration = null, $caption_entities = [], $allow_sending_without_reply = true, $allow_paid_broadcast = false,$message_effect_id = false)
     {
         return returnedMessage::create($this->bot('sendVoice', compact('chat_id', 'voice', 'caption', 'parse_mode', 'duration', 'disable_notification', 'protect_content', 'reply_to_message_id', 'reply_markup', 'caption_entities', 'allow_sending_without_reply', 'allow_paid_broadcast','message_effect_id')));
     }
@@ -165,7 +165,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendVideoNote($chat_id, string $video_note, array $reply_markup = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, int $length = null, string $thumb = null, int $duration = null, $allow_sending_without_reply = true, $allow_paid_broadcast = false,$message_effect_id = false)
+    public function sendVideoNote($chat_id,  $video_note, array $reply_markup = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, int $length = null, string $thumb = null, int $duration = null, $allow_sending_without_reply = true, $allow_paid_broadcast = false,$message_effect_id = false)
     {
         return returnedMessage::create($this->bot('sendVideoNote', compact('chat_id', 'video_note', 'duration', 'length', 'thumb', 'disable_notification', 'protect_content', 'reply_to_message_id', 'reply_markup', 'allow_sending_without_reply', 'allow_paid_broadcast','message_effect_id')));
     }

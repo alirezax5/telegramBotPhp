@@ -112,6 +112,7 @@ class telegram
         $this->caches['username'] = null;
         $this->caches['filesize'] = null;
         $this->caches['caption'] = null;
+        $this->caches['business_message'] = null;
     }
 
     //endregion init
@@ -178,6 +179,21 @@ class telegram
             if ($this->checkExistUpdate('message')) {
                 $cache = Message::create($this->data['message']);
                 $this->cacheTypes['Message'] = $cache;
+            }
+
+        }
+        return $cache;
+    }
+    /**
+     * @return BusinessMesssage
+     */
+    public function business_message()
+    {
+        $cache = $this->cacheTypes['business_message'];
+        if ($cache == null) {
+            if ($this->checkExistUpdate('business_message')) {
+                $cache = BusinessMesssage::create($this->data['business_message']);
+                $this->cacheTypes['business_message'] = $cache;
             }
 
         }
