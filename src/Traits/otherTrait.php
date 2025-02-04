@@ -16,6 +16,9 @@ trait otherTrait
         if ($this->isMessage()) {
             $message_id = $this->message()->getMessageId();
         }
+        if ($this->isBusiness() and $this->business_message()->issetFrom()) {
+            $message_id = $this->business_message()->getMessageId();
+        }
         if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
             $message_id = $this->callback_query()->getMessage()->getMessageId();
         }
@@ -40,6 +43,9 @@ trait otherTrait
         }
         if ($this->isMessage()) {
             $text = $this->message()->getText();
+        }
+        if ($this->isBusiness() and $this->business_message()->issetFrom()) {
+            $text = $this->business_message()->getText();
         }
         if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
             $text = $this->callback_query()->getMessage()->getText();
@@ -68,6 +74,9 @@ trait otherTrait
         }
         if ($this->isMessage() and $this->message()->issetFrom()) {
             $fromId = $this->message()->getFrom()->getId();
+        }
+        if ($this->isBusiness() and $this->business_message()->issetFrom()) {
+            $fromId = $this->business_message()->getFrom()->getId();
         }
         if ($this->isCallbackQuery()) {
             if ($this->callback_query()->issetFrom()) {
@@ -104,6 +113,9 @@ trait otherTrait
         if ($this->isMessage()) {
             $chatId = $this->message()->getChat()->getId();
         }
+        if ($this->isBusiness()) {
+            $chatId = $this->business_message()->getChat()->getId();
+        }
         if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
             if ($this->callback_query()->issetMessage()) {
                 $chatId = $this->callback_query()->getMessage()->getChat()->getId();
@@ -134,6 +146,9 @@ trait otherTrait
         }
         if ($this->isMessage()) {
             $firstName = $this->message()->getFrom()->getFirstName();
+        }
+        if ($this->isBusiness()) {
+            $firstName = $this->business_message()->getFrom()->getFirstName();
         }
         if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
             $firstName = $this->callback_query()->getMessage()->getFrom()->getFirstName();
@@ -167,6 +182,9 @@ trait otherTrait
         if ($this->isMessage()) {
             $language_code = $this->message()->getFrom()->getLanguageCode();
         }
+        if ($this->isBusiness()) {
+            $language_code = $this->business_message()->getFrom()->getLanguageCode();
+        }
         if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
             $language_code = $this->callback_query()->getMessage()->getFrom()->getLanguageCode();
         }
@@ -198,6 +216,9 @@ trait otherTrait
         }
         if ($this->isMessage()) {
             $is_premium = $this->message()->getFrom()->getIsPremium();
+        }
+        if ($this->isBusiness()) {
+            $is_premium = $this->business_message()->getFrom()->getIsPremium();
         }
         if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
             $is_premium = $this->callback_query()->getMessage()->getFrom()->getIsPremium();
@@ -231,6 +252,9 @@ trait otherTrait
         if ($this->isMessage()) {
             $lastName = $this->message()->getFrom()->issetlastName() == true ? $this->message()->getFrom()->getlastName() : null;
         }
+        if ($this->isBusiness()) {
+            $lastName = $this->business_message()->business_message()->issetlastName() == true ? $this->business_message()->getFrom()->getlastName() : null;
+        }
         if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
             $lastName = $this->callback_query()->getMessage()->getFrom()->issetlastName() == true ? $this->callback_query()->getMessage()->getFrom()->getlastName() : null;
         }
@@ -259,6 +283,9 @@ trait otherTrait
         }
         if ($this->isMessage()) {
             $username = $this->message()->getFrom()->issetUsername() == true ? $this->message()->getFrom()->getUsername() : null;
+        }
+        if ($this->isBusiness()) {
+            $username = $this->business_message()->getFrom()->issetUsername() == true ? $this->business_message()->getFrom()->getUsername() : null;
         }
         if ($this->isCallbackQuery()) {
             if ($this->callback_query()->issetMessage()) {
@@ -292,6 +319,9 @@ trait otherTrait
         }
         if ($this->isMessage()) {
             $type = $this->message()->getChat()->getType();
+        }
+        if ($this->isBusiness()) {
+            $type = $this->business_message()->getChat()->getType();
         }
         if ($this->isCallbackQuery() and $this->callback_query()->issetMessage()) {
             $type = $this->callback_query()->getMessage()->getChat()->getType();
@@ -463,7 +493,9 @@ trait otherTrait
         if ($this->caches['caption'] != null) {
             return $this->caches['caption'];
         }
-
+        if ($this->isBusiness() and $this->business_message()->issetFrom()) {
+            $text = $this->business_message()->get();
+        }
         if ($this->edited_message() && $this->edited_message()->issetCaption()) {
             return $this->edited_message()->getCaption();
         }
@@ -485,6 +517,6 @@ trait otherTrait
 
     public function pathToUrl($path)
     {
-        return strtr($this->urlFile, ['{url}' => $this->urlForRequest,'{token}' => $this->bot_token])  . $path;
+        return strtr($this->urlFile, ['{url}' => $this->urlForRequest, '{token}' => $this->bot_token]) . $path;
     }
 }

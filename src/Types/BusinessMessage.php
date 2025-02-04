@@ -136,7 +136,7 @@ use telegramBotApiPhp\Types\base;
  * @method bool issetVoice()
  * @method bool issetWebAppData()
  */
-class BusinessMesssage extends base
+class BusinessMessage extends base
 {
     static protected $map = [
         'business_connection_id' => true,

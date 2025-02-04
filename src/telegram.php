@@ -185,7 +185,7 @@ class telegram
         return $cache;
     }
     /**
-     * @return BusinessMesssage
+     * @return BusinessMessage
      */
     public function business_message()
     {
