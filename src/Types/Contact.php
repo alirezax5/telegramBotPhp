@@ -1,34 +1,17 @@
 <?php
 
-
 namespace telegramBotApiPhp\Types;
 
 /**
  * Class Contact
- * @package telegramBotApiPhp\Types
- * @method string getPhoneNumber()
- * @method string getFirstName()
- * @method string getLastName()
- * @method string getUserId()
- * @method string getVcard()
+ * Represents a phone contact.
+ *
+ * @property string $phone_number Contact's phone number.
+ * @property string $first_name Contact's first name.
+ * @property string|null $last_name Optional. Contact's last name.
+ * @property int|null $user_id Optional. Contact's user identifier in Telegram.
+ * @property string|null $vcard Optional. Additional data about the contact in the form of a vCard.
  */
-class Contact extends base
+class Contact extends BaseType
 {
-    static protected $map = [
-        'phone_number' => true,
-        'first_name' => true,
-        'last_name' => true,
-        'user_id' => true,
-        'vcard' => true
-    ];
-    protected $PhoneNumber;
-    protected $FirstName;
-    protected $LastName;
-    protected $UserId;
-    protected $Vcard;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

@@ -1,35 +1,19 @@
 <?php
 
-
 namespace telegramBotApiPhp\Types;
 
 /**
  * Class Invoice
- * @package telegramBotApiPhp\Types
- * @method string getTitle()
- * @method string getDescription()
- * @method string getStartParameter()
- * @method string getCurrency()
- * @method int getTotalAmount()
+ * Represents basic information about an invoice.
+ *
+ * @property string $title Product name.
+ * @property string $description Product description.
+ * @property string $start_parameter Unique bot deep-linking parameter that can be used to generate this invoice.
+ * @property string $currency Three-letter ISO 4217 currency code, or “XTR” for payments in Telegram Stars.
+ * @property int $total_amount Total price in the smallest units of the currency (integer, not float/double).
+ *                             For example, for a price of US$ 1.45 pass amount = 145.
+ *                             See the exp parameter in currencies.json, it shows the number of digits past the decimal point for each currency (2 for the majority of currencies).
  */
-class Invoice extends base
+class Invoice extends BaseType
 {
-    static protected $map = [
-        'title' => true,
-        'description' => true,
-        'start_parameter' => true,
-        'currency' => true,
-        'total_amount' => true
-    ];
-
-    protected $Title;
-    protected $Description;
-    protected $StartParameter;
-    protected $Currency;
-    protected $TotalAmount;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

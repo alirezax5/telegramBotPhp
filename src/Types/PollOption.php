@@ -1,25 +1,15 @@
 <?php
 
-
 namespace telegramBotApiPhp\Types;
 
 /**
- * Class Dice
- * @package telegramBotApiPhp\Types
- * @method string getText()
- * @method int getVoter_count()
+ * Class PollOption
+ * Contains information about one answer option in a poll.
+ *
+ * @property string $text Option text, 1-100 characters.
+ * @property MessageEntity[]|null $text_entities Optional. Special entities that appear in the option text. Currently, only custom emoji entities are allowed in poll option texts.
+ * @property int $voter_count Number of users that voted for this option.
  */
-class PollOption extends base
+class PollOption extends BaseType
 {
-    static protected $map = [
-        'text' => true,
-        'voter_count' => true,
-    ];
-    protected $Text;
-    protected $Voter_count;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }
