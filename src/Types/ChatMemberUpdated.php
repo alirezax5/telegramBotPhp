@@ -1,43 +1,16 @@
 <?php
 
-
 namespace telegramBotApiPhp\Types;
 
 /**
  * Class ChatMemberUpdated
- * @package telegramBotApiPhp\Types
- * @method Chat getChat()
- * @method User getFrom()
- * @method int getDate()
- * @method ChatMember getOldChatMember()
- * @method ChatMember getNewChatMember()
- * @method ChatInviteLink getInviteLink()
- * @method bool issetChat()
- * @method bool issetFrom()
- * @method bool issetDate()
- * @method bool issetOldChatMember()
- * @method bool issetNewChatMember()
- * @method bool issetInviteLink()
+ *
+ * @property int $message_id شناسه پیام
+ * @property User $from فرستنده پیام
+ * @property int $date زمان ارسال پیام (Unix timestamp)
+ * @property Chat $chat چت مربوط به پیام
+ * @property string $text متن پیام
  */
-class ChatMemberUpdated extends base
+class ChatMemberUpdated extends BaseType
 {
-    static protected $map = [
-        'chat' => Chat::class,
-        'from' => User::class,
-        'date' => true,
-        'old_chat_member' => ChatMember::class,
-        'new_chat_member' => ChatMember::class,
-        'invite_link' => ChatInviteLink::class,
-    ];
-    protected $Chat;
-    protected $From;
-    protected $Date;
-    protected $OldChatMember;
-    protected $NewChatMember;
-    protected $InviteLink;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

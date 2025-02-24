@@ -26,7 +26,8 @@
     "psr-4": {
       "telegramBotApiPhp\\": "src/",
       "telegramBotApiPhp\\Types\\": "src/Types",
-      "telegramBotApiPhp\\Traits\\": "src/Traits"
+      "telegramBotApiPhp\\Traits\\": "src/Traits",
+      "telegramBotApiPhp\\Factory\\": "src/Factory"
     }
   }
 }

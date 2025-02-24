@@ -5,6 +5,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" packagePrefix="telegramBotApiPhp\" />
       <sourceFolder url="file://$MODULE_DIR$/src/Traits" isTestSource="false" packagePrefix="telegramBotApiPhp\Traits\" />
       <sourceFolder url="file://$MODULE_DIR$/src/Types" isTestSource="false" packagePrefix="telegramBotApiPhp\Types\" />
+      <sourceFolder url="file://$MODULE_DIR$/spec" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/Factory" isTestSource="false" packagePrefix="telegramBotApiPhp\Factory\" />
+      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
