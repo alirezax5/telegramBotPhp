@@ -1,37 +1,16 @@
-<?php
-
-
 namespace telegramBotApiPhp\Types;
 
 /**
- * Class ShippingAddress
- * @package telegramBotApiPhp\Types
- * @method string getCountryCode()
- * @method string getState()
- * @method string getCity()
- * @method string getStreetLine1()
- * @method string getStreetLine2()
- * @method string getPostCode()
- */
-class ShippingAddress extends base
+* Class ShippingAddress
+* Represents a shipping address.
+*
+* @property string $country_code Two-letter ISO 3166-1 alpha-2 country code.
+* @property string $state State, if applicable.
+* @property string $city City.
+* @property string $street_line1 First line for the address.
+* @property string $street_line2 Second line for the address.
+* @property string $post_code Address post code.
+*/
+class ShippingAddress extends BaseType
 {
-    static protected $map = [
-        'country_code' => true,
-        'state' => true,
-        'city' => true,
-        'street_line1' => true,
-        'street_line2' => true,
-        'post_code' => true,
-    ];
-    protected $CountryCode;
-    protected $State;
-    protected $City;
-    protected $StreetLine1;
-    protected $StreetLine2;
-    protected $PostCode;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }
