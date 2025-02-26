@@ -6,31 +6,12 @@ namespace telegramBotApiPhp\Types;
 /**
  * Class returnedMessage
  * @package telegramBotApiPhp\Types
- * @method bool getOk()
- * @method int getErrorCode()
- * @method string getDescription()
- * @method Message getResult()
- * @method bool issetOk()
- * @method bool issetErrorCode()
- * @method bool issetDescription()
- * @method bool issetResult()
+ * @property bool $ok status
+ * @property int $error_code
+ * @property string $description
+ * @property Message|null $result
  */
-class returnedMessage extends base
+class returnedMessage extends BaseType
 {
-    static protected $map = [
-        'ok' => true,
-        'error_code' => true,
-        'description' => true,
-        'result' => Message::class,
-    ];
 
-    protected $Ok;
-    protected $ErrorCode;
-    protected $Description;
-    protected $Result;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

@@ -4,14 +4,14 @@
 namespace telegramBotApiPhp\Types;
 
 /**
- * Class returnedArrayOfSticker
+ * Class returnedBusinessConnection
  * @package telegramBotApiPhp\Types
  * @property bool $ok status
  * @property int $error_code
  * @property string $description
- * @property Sticker[] $result
+ * @property BusinessConnection  $result
  */
-class returnedArrayOfSticker extends BaseType
+class returnedBusinessConnection extends BaseType
 {
 
 }
