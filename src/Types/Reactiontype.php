@@ -1,37 +1,14 @@
 <?php
-
-
 namespace telegramBotApiPhp\Types;
 
 /**
- * Class Reactiontype
- * @package telegramBotApiPhp\Types
- * @method string getType()
- * @method string getEmoji()
- * @method string getCustomEmojiId()
- * @method string getTotalCount()
- * @method bool issetType()
- * @method bool issetEmoji()
- * @method bool issetCustomEmojiId()
- * @method bool issetTotalCount()
-
+ * Class ReactionType
+ * This object describes the type of a reaction.
+ *
+ * @property string $type Type of the reaction, always "emoji".
+ * @property string $emoji Reaction emoji. Currently, it can be one of: "👍", "👎", "❤", "🔥", "🥰", "👏", "😁", "🤔", "🤯", "😱", "🤬", "😢", "🎉", "🤩", "🤮", "💩", "🙏", "👌", "🕊", "🤡", "🥱", "🥴", "😍", "🐳", "❤‍🔥", "🌚", "🌭", "💯", "🤣", "⚡", "🍌", "🏆", "💔", "🤨", "😐", "🍓", "🍾", "💋", "🖕", "😈", "😴", "😭", "🤓", "👻", "👨‍💻", "👀", "🎃", "🙈", "😇", "😨", "🤝", "✍", "🤗", "🫡", "🎅", "🎄", "☃", "💅", "🤪", "🗿", "🆒", "💘", "🙉", "🦄", "😘", "💊", "🙊", "😎", "👾", "🤷‍♂", "🤷", "🤷‍♀", "😡".
+ * @property string $custom_emoji_id Custom emoji identifier
  */
-class Reactiontype extends base
+class Reactiontype extends BaseType
 {
-    static protected $map = [
-        'type' => true,
-        'emoji' => true,
-        'custom_emoji_id' => true,
-        'total_count' => true
-    ];
-    protected $Type;
-    protected $Emoji;
-    protected $CustomEmojiId;
-    protected $TotalCount;
-
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

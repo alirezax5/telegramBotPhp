@@ -1,40 +1,20 @@
 <?php
-
-
 namespace telegramBotApiPhp\Types;
 
 /**
  * Class CallbackQuery
- * @package telegramBotApiPhp\Types
- * @method string getId()
- * @method User getFrom()
- * @method Message getMessage()
- * @method string getInlineMessageId()
- * @method string getChatInstance()
- * @method string getData()
- * @method string getGameShortName()
+ * Represents an incoming callback query from an inline keyboard button.
+ * The query can originate from either a bot message or an inline message.
+ * Exactly one of data or game_short_name will be present.
+ *
+ * @property string $id Unique identifier for this query
+ * @property User $from Sender of the query
+ * @property MaybeInaccessibleMessage $message Optional. Message sent by the bot with the callback button
+ * @property string $inline_message_id Optional. Identifier of the message sent in inline mode
+ * @property string $chat_instance Global identifier, corresponding to the chat to which the message was sent
+ * @property string $data Optional. Data associated with the callback button
+ * @property string $game_short_name Optional. Short name of a Game to be returned
  */
-class CallbackQuery extends base
+class CallbackQuery extends BaseType
 {
-    static protected $map = [
-        'id' => true,
-        'from' => User::class,
-        'message' => Message::class,
-        'inline_message_id' => true,
-        'chat_instance' => true,
-        'data' => true,
-        'game_short_name' => true,
-    ];
-    protected $Id;
-    protected $From;
-    protected $Message;
-    protected $InlineMessageId;
-    protected $ChatInstance;
-    protected $Data;
-    protected $GameShortName;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

@@ -1,43 +1,22 @@
 <?php
-
-
 namespace telegramBotApiPhp\Types;
 
 /**
  * Class ChatInviteLink
- * @package telegramBotApiPhp\Types
- * @method string getInviteLink;()
- * @method User getCreator()
- * @method bool getIsPrimary()
- * @method bool getIsRevoked()
- * @method int getExpireDate()
- * @method int getMemberLimit()
- * @method bool issetInviteLink;()
- * @method bool issetCreator()
- * @method bool issetIsPrimary()
- * @method bool issetIsRevoked()
- * @method bool issetExpireDate()
- * @method bool issetMemberLimit()
+ * Represents an invite link for a chat with various properties regarding its status and limitations.
+ *
+ * @property string $invite_link The invite link
+ * @property User $creator Creator of the link
+ * @property bool $creates_join_request True if users joining need approval from chat admins
+ * @property bool $is_primary True if the link is primary
+ * @property bool $is_revoked True if the link is revoked
+ * @property string $name Optional. Invite link name
+ * @property int $expire_date Optional. Expiry timestamp of the link
+ * @property int $member_limit Optional. Max number of members allowed via this link
+ * @property int $pending_join_request_count Optional. Number of pending join requests
+ * @property int $subscription_period Optional. Subscription period duration in seconds
+ * @property int $subscription_price Optional. Price in Telegram Stars for subscription
  */
-class ChatInviteLink extends base
+class ChatInviteLink extends BaseType
 {
-    static protected $map = [
-        'invite_link' => true,
-        'creator' => User::class,
-        'is_primary' => true,
-        'is_revoked' => true,
-        'expire_date' => true,
-        'member_limit' => true,
-    ];
-    protected $InviteLink;
-    protected $Creator;
-    protected $IsPrimary;
-    protected $IsRevoked;
-    protected $ExpireDate;
-    protected $MemberLimit;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }
