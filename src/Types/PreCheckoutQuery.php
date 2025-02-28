@@ -1,40 +1,18 @@
 <?php
-
-
 namespace telegramBotApiPhp\Types;
 
 /**
  * Class PreCheckoutQuery
- * @package telegramBotApiPhp\Types
- * @method string getId()
- * @method User getFrom()
- * @method string getCurrency()
- * @method int getTotalAmount()
- * @method string getInvoicePayload()
- * @method string getShippingOptionId()
- * @method OrderInfo getOrderInfo()
+ * This object contains information about an incoming pre-checkout query.
+ *
+ * @property string $id Unique query identifier
+ * @property User $from User who sent the query
+ * @property string $currency Three-letter ISO 4217 currency code, or “XTR” for payments in Telegram Stars
+ * @property int $total_amount Total price in the smallest units of the currency (integer, not float/double)
+ * @property string $invoice_payload Bot-specified invoice payload
+ * @property string|null $shipping_option_id Optional. Identifier of the shipping option chosen by the user
+ * @property OrderInfo|null $order_info Optional. Order information provided by the user
  */
-class PreCheckoutQuery extends base
+class PreCheckoutQuery extends BaseType
 {
-    static protected $map = [
-        'id' => true,
-        'from' => User::class,
-        'currency' => true,
-        'total_amount' => true,
-        'invoice_payload' => true,
-        'shipping_option_id' => true,
-        'order_info' => OrderInfo::class,
-    ];
-    protected $Id;
-    protected $From;
-    protected $Currency;
-    protected $TotalAmount;
-    protected $InvoicePayload;
-    protected $ShippingOptionId;
-    protected $OrderInfo;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

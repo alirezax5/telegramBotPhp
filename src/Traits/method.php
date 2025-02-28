@@ -26,7 +26,8 @@ use telegramBotApiPhp\Types\{ArrayOfBotCommand,
     returnedString,
     returnedUser,
     returnedUserProfilePhotos,
-    returnedWebhookInfo
+    returnedWebhookInfo,
+    SentWebAppMessage
 };
 
 trait method
@@ -287,19 +288,14 @@ trait method
     }
 
 
-    /**
-     * @return returnedMessage
-     */
-    public function sendPoll($chat_id, $question, $options, $question_parse_mode = null, $question_entities = null, $is_anonymous = true, $type = "regular", $allows_multiple_answers = false, $correct_option_id = null, $explanation = null, $explanation_parse_mode = null, $explanation_entities = null, $open_period = null, $close_date = null, $is_closed = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
+
+    public function sendPoll($chat_id, $question, $options, $question_parse_mode = null, $question_entities = null, $is_anonymous = true, $type = "regular", $allows_multiple_answers = false, $correct_option_id = null, $explanation = null, $explanation_parse_mode = null, $explanation_entities = null, $open_period = null, $close_date = null, $is_closed = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, $message_effect_id = null, $reply_parameters = null, $reply_markup = null):returnedMessage
     {
         return returnedMessage::create($this->bot('sendPoll', compact('chat_id', 'question', 'question_parse_mode', 'question_entities', 'options', 'is_anonymous', 'type', 'allows_multiple_answers', 'correct_option_id', 'explanation', 'explanation_parse_mode', 'explanation_entities', 'open_period', 'close_date', 'is_closed', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
     }
 
 
-    /**
-     * @return returnedMessage
-     */
-    public function sendDice($chat_id, $emoji = "🎲", $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
+    public function sendDice($chat_id, $emoji = "🎲", $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, $message_effect_id = null, $reply_parameters = null, $reply_markup = null):returnedMessage
     {
         return returnedMessage::create($this->bot('sendDice', compact('chat_id', 'emoji', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
     }
@@ -788,86 +784,118 @@ trait method
     {
         return returned::create($this->bot('removeUserVerification', compact('user_id')));
     }
+
     public function removeChatVerification($chat_id): returned
     {
         return returned::create($this->bot('removeChatVerification', compact('chat_id')));
     }
 
-    /**
-     * @return returned
-     */
-    public function answerInlineQuery($inline_query_id, array $results, int $cache_time = null, bool $is_personal = null, string $next_offset = null, string $switch_pm_text = null, string $switch_pm_parameter = null)
+    public function answerInlineQuery($inline_query_id, $results, $cache_time = 300, $is_personal = false, $next_offset = '', $button = null): returned
     {
         $results = json_encode($results);
-
-        return returned::create($this->bot('answerInlineQuery', compact('inline_query_id', 'results', 'cache_time', 'is_personal', 'next_offset', 'switch_pm_text', 'switch_pm_parameter')));
+        return returned::create($this->bot('answerInlineQuery', compact('inline_query_id', 'results', 'cache_time', 'is_personal', 'next_offset', 'button')));
     }
 
-    /**
-     * @return returned
-     */
-    public function answerWebAppQuery($web_app_query_id, $result)
+
+    public function answerWebAppQuery($web_app_query_id, $result): SentWebAppMessage
     {
         $result = json_encode($result);
 
-        return returned::create($this->bot('answerWebAppQuery', compact('web_app_query_id', 'result')));
+        return SentWebAppMessage::create($this->bot('answerWebAppQuery', compact('web_app_query_id', 'result')));
     }
 
-    /**
-     * @return returned
-     */
-    public function SentWebAppMessage($inline_message_id)
+
+    public function SentWebAppMessage($inline_message_id): returned
     {
 
         return returned::create($this->bot('SentWebAppMessage', compact('inline_message_id')));
     }
 
-    /**
-     * @return returnedMessage
-     */
-    public function sendInvoice(int $chat_id, string $title, string $description, string $payload, string $currency, $prices, string $provider_token = null, string $provider_data = null, string $start_parameter = null, string $photo_url = null, int $photo_size = null, int $photo_width = null, int $photo_height = null, bool $need_name = false, bool $need_phone_number = false, bool $need_email = false, bool $need_shipping_address = false, bool $send_phone_number_to_provider = false, bool $send_email_to_provider = false, bool $is_flexible = false, bool $disable_notification = true, int $reply_to_message_id = null, array $reply_markup = null)
+    public function savePreparedInlineMessage($user_id, $result, $allow_user_chats = false, $allow_bot_chats = false, $allow_group_chats = false, $allow_channel_chats = false): returnedPreparedInlineMessage
     {
-        return returnedMessage::create($this->bot('sendInvoice', compact('chat_id', 'title', 'description', 'payload', 'provider_token', 'start_parameter', 'currency', 'prices', 'provider_data', 'photo_url', 'photo_size', 'photo_width', 'photo_height', 'need_name', 'need_phone_number', 'need_email', 'need_shipping_address', 'send_phone_number_to_provider', 'send_email_to_provider', 'is_flexible', 'disable_notification', 'reply_to_message_id', 'reply_markup')));
+        return returnedPreparedInlineMessage::create($this->bot('savePreparedInlineMessage', compact('user_id', 'result', 'allow_user_chats', 'allow_bot_chats', 'allow_group_chats', 'allow_channel_chats')));
     }
 
-    /**
-     * @return returned
-     */
-    public function answerShippingQuery(string $shipping_query_id, bool $ok, array $shipping_options = null, string $error_message = null)
+    public function sendInvoice($chat_id, $title, $description, $payload, $currency, $prices, $provider_token = '', $max_tip_amount = 0, $suggested_tip_amounts = [], $start_parameter = '', $provider_data = '', $photo_url = '', $photo_size = 0, $photo_width = 0, $photo_height = 0, $need_name = false, $need_phone_number = false, $need_email = false, $need_shipping_address = false, $send_phone_number_to_provider = false, $send_email_to_provider = false, $is_flexible = false, $disable_notification = false, $protect_content = false, $allow_paid_broadcast = false, $message_effect_id = '', $reply_parameters = null, $reply_markup = null): returnedMessage
     {
-        return returned::create($this->bot('answerShippingQuery', compact('shipping_query_id', 'ok', 'shipping_options', 'error_message')));
+        return returnedMessage::create($this->bot('sendInvoice', compact(
+            'chat_id', 'title', 'description', 'payload', 'currency', 'prices',
+            'provider_token', 'max_tip_amount', 'suggested_tip_amounts',
+            'start_parameter', 'provider_data', 'photo_url', 'photo_size',
+            'photo_width', 'photo_height', 'need_name', 'need_phone_number',
+            'need_email', 'need_shipping_address', 'send_phone_number_to_provider',
+            'send_email_to_provider', 'is_flexible', 'disable_notification',
+            'protect_content', 'allow_paid_broadcast', 'message_effect_id',
+            'reply_parameters', 'reply_markup'
+        )));
     }
 
-    /**
-     * @return returned
-     */
-
-    public function answerPreCheckoutQuery(string $pre_checkout_query_id, bool $ok, string $error_message = null)
+    public function createInvoiceLink($title, $description, $payload, $currency, $prices, $business_connection_id = '', $provider_token = '', $subscription_period = 0, $max_tip_amount = 0, $suggested_tip_amounts = [], $provider_data = '', $photo_url = '', $photo_size = 0, $photo_width = 0, $photo_height = 0, $need_name = false, $need_phone_number = false, $need_email = false, $need_shipping_address = false, $send_phone_number_to_provider = false, $send_email_to_provider = false, $is_flexible = false): returnedString
     {
-        return returned::create($this->bot('answerPreCheckoutQuery', compact('pre_checkout_query_id', 'ok', 'error_message')));
+        return returnedString::create($this->bot('createInvoiceLink', compact(
+            'title', 'description', 'payload', 'currency', 'prices',
+            'business_connection_id', 'provider_token', 'subscription_period',
+            'max_tip_amount', 'suggested_tip_amounts', 'provider_data',
+            'photo_url', 'photo_size', 'photo_width', 'photo_height', 'need_name',
+            'need_phone_number', 'need_email', 'need_shipping_address',
+            'send_phone_number_to_provider', 'send_email_to_provider', 'is_flexible'
+        )));
     }
 
-    /**
-     * @return returnedMessage
-     */
-    public function sendGame($chat_id, string $game_short_name, bool $disable_notification = true, string $reply_to_message_id = null, array $reply_markup = null)
+    public function answerShippingQuery($shipping_query_id, $ok, $shipping_options = [], $error_message = ''): returned
     {
-        return returnedMessage::create($this->bot('sendGame', compact('chat_id', 'game_short_name', 'disable_notification', 'reply_to_message_id', 'reply_markup')));
+        return returned::create($this->bot('answerShippingQuery', compact(
+            'shipping_query_id', 'ok', 'shipping_options', 'error_message'
+        )));
     }
 
-    /**
-     * @return returned
-     */
-    public function setGameScore(int $user_id, int $score, bool $force = true, bool $disable_edit_message = true, int $chat_id = null, int $message_id = null, string $inline_message_id = null)
+    public function answerPreCheckoutQuery($pre_checkout_query_id, $ok, $error_message = ''): returned
     {
-        return returned::create($this->bot('setGameScore', compact('user_id', 'score', 'force', 'disable_edit_message', 'chat_id', 'message_id', 'inline_message_id')));
+        return returned::create($this->bot('answerPreCheckoutQuery', compact(
+            'pre_checkout_query_id', 'ok', 'error_message'
+        )));
     }
 
-    /**
-     * @return returnedGameHighScore
-     */
-    public function getGameHighScores(int $user_id, int $chat_id = null, int $message_id = null, $inline_message_id = null)
+    public function getStarTransactions($offset = 0, $limit = 100): returnedStarTransaction
     {
-        return returnedGameHighScore::create($this->bot('getGameHighScores', compact('user_id', 'chat_id', 'message_id', 'inline_message_id')));
+        return returnedStarTransaction::create($this->bot('getStarTransactions', compact(
+            'offset', 'limit'
+        )));
     }
+
+    public function refundStarPayment($user_id, $telegram_payment_charge_id): returned
+    {
+        return returned::create($this->bot('refundStarPayment', compact(
+            'user_id', 'telegram_payment_charge_id'
+        )));
+    }
+
+    public function editUserStarSubscription($user_id, $telegram_payment_charge_id, $is_canceled): returned
+    {
+        return returned::create($this->bot('editUserStarSubscription', compact(
+            'user_id', 'telegram_payment_charge_id', 'is_canceled'
+        )));
+    }
+
+    public function sendGame($chat_id, $game_short_name, $business_connection_id = null, $message_thread_id = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, $message_effect_id = null, $reply_parameters = null, $reply_markup = null) {
+        return returnedMessage::create($this->bot('sendGame', compact(
+            'chat_id', 'game_short_name', 'business_connection_id', 'message_thread_id', 'disable_notification', 'protect_content',
+            'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup'
+        )));
+    }
+
+    public function setGameScore($user_id, $score, $force = false, $disable_edit_message = false, $chat_id = null, $message_id = null, $inline_message_id = null):returnedMessage|returned {
+        return returnedMessage::create($this->bot('setGameScore', compact(
+            'user_id', 'score', 'force', 'disable_edit_message', 'chat_id', 'message_id', 'inline_message_id'
+        )));
+    }
+
+    public function getGameHighScores($user_id, $chat_id = null, $message_id = null, $inline_message_id = null):returnedArrayOfGameHighScore {
+        return returnedArrayOfGameHighScore::create($this->bot('getGameHighScores', compact(
+            'user_id', 'chat_id', 'message_id', 'inline_message_id'
+        )));
+    }
+
+
+
 }

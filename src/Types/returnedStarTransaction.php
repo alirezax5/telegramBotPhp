@@ -4,14 +4,14 @@
 namespace telegramBotApiPhp\Types;
 
 /**
- * Class returnedGameHighScore
+ * Class returned
  * @package telegramBotApiPhp\Types
  * @property bool $ok status
  * @property int $error_code
  * @property string $description
- * @property GameHighScore $result
+ * @property StarTransaction $result
  */
-class returnedGameHighScore extends BaseType
+class returnedStarTransaction extends BaseType
 {
 
 }

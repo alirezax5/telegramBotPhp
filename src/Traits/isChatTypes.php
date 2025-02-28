@@ -1,28 +1,31 @@
 <?php
 
-
 namespace telegramBotApiPhp\Traits;
-
 
 trait isChatTypes
 {
+    private function isChatType(string $type): bool
+    {
+        return $this->chatType() === $type;
+    }
+
     public function isPrivate(): bool
     {
-        return $this->chatType() == self::PRIVATE;
+        return $this->isChatType(self::PRIVATE);
     }
 
     public function isGroup(): bool
     {
-        return $this->chatType() == self::GROUP;
+        return $this->isChatType(self::GROUP);
     }
 
     public function isSupergroup(): bool
     {
-        return $this->chatType() == self::SUPERGROUP;
+        return $this->isChatType(self::SUPERGROUP);
     }
 
     public function isChannel(): bool
     {
-        return $this->chatType() == self::CHANNEL;
+        return $this->isChatType(self::CHANNEL);
     }
 }

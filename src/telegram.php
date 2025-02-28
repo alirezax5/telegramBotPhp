@@ -27,7 +27,24 @@ class Telegram
 
     private const API_URL = '{url}/bot{token}/{method}';
     private const FILE_URL = '{url}/file/bot{token}/{file_path}';
-
+    const PRIVATE = 'private';
+    const GROUP = 'group';
+    const SUPERGROUP = 'supergroup';
+    const CHANNEL = 'channel';
+    const _PHOTO = 'photo';
+    const _VIDEO = 'video';
+    const _FORWARD = 'forward';
+    const _VIDEO_NOTE = 'video_note';
+    const _AUDIO = 'audio';
+    const _VOICE = 'voice';
+    const _ANIMATION = 'animation';
+    const _STICKER = 'sticker';
+    const _DOCUMENT = 'document';
+    const _LOCATION = 'location';
+    const _CONTACT = 'contact';
+    const _GAME = 'game';
+    const _TEXT = 'text';
+    const _MEDIA = 'media';
     private const CACHE_KEYS = [
         'message' => null,
         'edited_message' => null,
@@ -52,9 +69,24 @@ class Telegram
         'chat_join_request' => null,
         'chat_boost' => null,
     ];
-
+    private $caches = [
+        'chatType' => null,
+        'text' => null,
+        'message_id' => null,
+        'chatId' => null,
+        'fromId' => null,
+        'msgType' => null,
+        'mediaType' => null,
+        'fileId' => null,
+        'firstName' => null,
+        'lastName' => null,
+        'username' => null,
+        'caption' => null,
+        'language_code' => null,
+        'is_premium' => null,
+    ];
     private array $data = [];
-    private array $cache = self::CACHE_KEYS;
+    private array $cacheType = self::CACHE_KEYS;
     private string $botToken;
     private string $apiUrl;
     private string $fileUrl;
@@ -80,7 +112,7 @@ class Telegram
 
     private function clearCache(): void
     {
-        $this->cache = self::CACHE_KEYS;
+        $this->cacheType = self::CACHE_KEYS;
     }
 
     public function bot(string $method, array $data = [], bool $isUpload = false): array
@@ -146,10 +178,10 @@ class Telegram
 
     private function getCachedUpdate(string $key, string $class): ?BaseType
     {
-        if (!isset($this->cache[$key]) && $this->checkUpdateExists($key)) {
-            $this->cache[$key] = $class::create($this->data[$key]);
+        if (!isset($this->cacheType[$key]) && $this->checkUpdateExists($key)) {
+            $this->cacheType[$key] = $class::create($this->data[$key]);
         }
-        return $this->cache[$key] ?? null;
+        return $this->cacheType[$key] ?? null;
     }
 
     public function message(): ?Message { return $this->getCachedUpdate('message', Message::class); }
@@ -175,4 +207,5 @@ class Telegram
     public function chatJoinRequest(): ?ChatJoinRequest { return $this->getCachedUpdate('chat_join_request', ChatJoinRequest::class); }
     public function chatBoost(): ?ChatBoostUpdated { return $this->getCachedUpdate('chat_boost', ChatBoostUpdated::class); }
     public function removedChatBoost(): ?ChatBoostRemoved { return $this->getCachedUpdate('removed_chat_boost', ChatBoostRemoved::class); }
+
 }

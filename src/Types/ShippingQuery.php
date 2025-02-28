@@ -1,31 +1,15 @@
 <?php
-
-
 namespace telegramBotApiPhp\Types;
 
 /**
  * Class ShippingQuery
- * @package telegramBotApiPhp\Types
- * @method string getId()
- * @method User getFrom()
- * @method string getInvoicePayload()
- * @method ShippingAddress getShippingAddress()
+ * This object contains information about an incoming shipping query.
+ *
+ * @property string $id Unique query identifier
+ * @property User $from User who sent the query
+ * @property string $invoice_payload Bot-specified invoice payload
+ * @property ShippingAddress $shipping_address User specified shipping address
  */
-class ShippingQuery extends base
+class ShippingQuery extends BaseType
 {
-    static protected $map = [
-        'id' => true,
-        'from' => User::class,
-        'invoice_payload' => true,
-        'shipping_address' => ShippingAddress::class,
-    ];
-    protected $Id;
-    protected $From;
-    protected $InvoicePayload;
-    protected $ShippingAddress;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }
