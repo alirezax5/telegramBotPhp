@@ -1,25 +1,25 @@
 <?php
 
-namespace TelegramBotApiPhp;
+namespace telegramBotApiPhp;
 
-use TelegramBotApiPhp\Types\{
+use telegramBotApiPhp\Traits\{isChatTypes, isMedia, isUpdates, method, otherTrait};
+use telegramBotApiPhp\Types\{BaseType,
+    BusinessConnection,
+    BusinessMessagesDeleted,
     CallbackQuery,
+    ChatBoostRemoved,
+    ChatBoostUpdated,
+    ChatJoinRequest,
+    ChatMemberUpdated,
     ChosenInlineResult,
     InlineQuery,
     Message,
+    MessageReactionCountUpdated,
+    MessageReactionUpdated,
     Poll,
     PollAnswer,
     PreCheckoutQuery,
-    ShippingQuery
-};
-use TelegramBotApiPhp\Traits\{
-    isChatTypes,
-    isMedia,
-    isUpdates,
-    method,
-    otherTrait
-};
-use telegramBotApiPhp\Types\ChatBoostRemoved;
+    ShippingQuery};
 
 class Telegram
 {
@@ -175,7 +175,6 @@ class Telegram
     }
 
 
-
     private function getCachedUpdate(string $key, string $class): ?BaseType
     {
         if (!isset($this->cacheType[$key]) && $this->checkUpdateExists($key)) {
@@ -184,28 +183,119 @@ class Telegram
         return $this->cacheType[$key] ?? null;
     }
 
-    public function message(): ?Message { return $this->getCachedUpdate('message', Message::class); }
-    public function editedMessage(): ?Message { return $this->getCachedUpdate('edited_message', Message::class); }
-    public function channelPost(): ?Message { return $this->getCachedUpdate('channel_post', Message::class); }
-    public function editedChannelPost(): ?Message { return $this->getCachedUpdate('edited_channel_post', Message::class); }
-    public function businessConnection(): ?BusinessConnection { return $this->getCachedUpdate('business_connection', BusinessConnection::class); }
-    public function businessMessage(): ?Message { return $this->getCachedUpdate('business_message', Message::class); }
-    public function editedBusinessMessage(): ?Message { return $this->getCachedUpdate('edited_business_message', Message::class); }
-    public function deletedBusinessMessages(): ?BusinessMessagesDeleted { return $this->getCachedUpdate('deleted_business_messages', BusinessMessagesDeleted::class); }
-    public function messageReaction(): ?MessageReactionUpdated { return $this->getCachedUpdate('message_reaction', MessageReactionUpdated::class); }
-    public function messageReactionCount(): ?	MessageReactionCountUpdated { return $this->getCachedUpdate('message_reaction_count',MessageReactionCountUpdated::class); }
-    public function inlineQuery(): ?InlineQuery { return $this->getCachedUpdate('inline_query', InlineQuery::class); }
-    public function chosenInlineResult(): ?ChosenInlineResult { return $this->getCachedUpdate('chosen_inline_result', ChosenInlineResult::class); }
-    public function callbackQuery(): ?CallbackQuery { return $this->getCachedUpdate('callback_query', CallbackQuery::class); }
-    public function shippingQuery(): ?ShippingQuery { return $this->getCachedUpdate('shipping_query', ShippingQuery::class); }
-    public function preCheckoutQuery(): ?PreCheckoutQuery { return $this->getCachedUpdate('pre_checkout_query', PreCheckoutQuery::class); }
-    public function purchasedPaidMedia(): ?PreCheckoutQuery { return $this->getCachedUpdate('purchased_paid_media', PreCheckoutQuery::class); }
-    public function poll(): ?Poll { return $this->getCachedUpdate('poll', Poll::class); }
-    public function pollAnswer(): ?PollAnswer { return $this->getCachedUpdate('poll_answer', PollAnswer::class); }
-    public function myChatMember(): ?ChatMemberUpdated { return $this->getCachedUpdate('my_chat_member', ChatMemberUpdated::class); }
-    public function chatMember(): ?ChatMemberUpdated { return $this->getCachedUpdate('chat_member', ChatMemberUpdated::class); }
-    public function chatJoinRequest(): ?ChatJoinRequest { return $this->getCachedUpdate('chat_join_request', ChatJoinRequest::class); }
-    public function chatBoost(): ?ChatBoostUpdated { return $this->getCachedUpdate('chat_boost', ChatBoostUpdated::class); }
-    public function removedChatBoost(): ?ChatBoostRemoved { return $this->getCachedUpdate('removed_chat_boost', ChatBoostRemoved::class); }
+    public function message(): ?Message
+    {
+        return $this->getCachedUpdate('message', Message::class);
+    }
+
+    public function editedMessage(): ?Message
+    {
+        return $this->getCachedUpdate('edited_message', Message::class);
+    }
+
+    public function channelPost(): ?Message
+    {
+        return $this->getCachedUpdate('channel_post', Message::class);
+    }
+
+    public function editedChannelPost(): ?Message
+    {
+        return $this->getCachedUpdate('edited_channel_post', Message::class);
+    }
+
+    public function businessConnection(): ?BusinessConnection
+    {
+        return $this->getCachedUpdate('business_connection', BusinessConnection::class);
+    }
+
+    public function businessMessage(): ?Message
+    {
+        return $this->getCachedUpdate('business_message', Message::class);
+    }
+
+    public function editedBusinessMessage(): ?Message
+    {
+        return $this->getCachedUpdate('edited_business_message', Message::class);
+    }
+
+    public function deletedBusinessMessages(): ?BusinessMessagesDeleted
+    {
+        return $this->getCachedUpdate('deleted_business_messages', BusinessMessagesDeleted::class);
+    }
+
+    public function messageReaction(): ?MessageReactionUpdated
+    {
+        return $this->getCachedUpdate('message_reaction', MessageReactionUpdated::class);
+    }
+
+    public function messageReactionCount(): ?MessageReactionCountUpdated
+    {
+        return $this->getCachedUpdate('message_reaction_count', MessageReactionCountUpdated::class);
+    }
+
+    public function inlineQuery(): ?InlineQuery
+    {
+        return $this->getCachedUpdate('inline_query', InlineQuery::class);
+    }
+
+    public function chosenInlineResult(): ?ChosenInlineResult
+    {
+        return $this->getCachedUpdate('chosen_inline_result', ChosenInlineResult::class);
+    }
+
+    public function callbackQuery(): ?CallbackQuery
+    {
+        return $this->getCachedUpdate('callback_query', CallbackQuery::class);
+    }
+
+    public function shippingQuery(): ?ShippingQuery
+    {
+        return $this->getCachedUpdate('shipping_query', ShippingQuery::class);
+    }
+
+    public function preCheckoutQuery(): ?PreCheckoutQuery
+    {
+        return $this->getCachedUpdate('pre_checkout_query', PreCheckoutQuery::class);
+    }
+
+    public function purchasedPaidMedia(): ?PreCheckoutQuery
+    {
+        return $this->getCachedUpdate('purchased_paid_media', PreCheckoutQuery::class);
+    }
+
+    public function poll(): ?Poll
+    {
+        return $this->getCachedUpdate('poll', Poll::class);
+    }
+
+    public function pollAnswer(): ?PollAnswer
+    {
+        return $this->getCachedUpdate('poll_answer', PollAnswer::class);
+    }
+
+    public function myChatMember(): ?ChatMemberUpdated
+    {
+        return $this->getCachedUpdate('my_chat_member', ChatMemberUpdated::class);
+    }
+
+    public function chatMember(): ?ChatMemberUpdated
+    {
+        return $this->getCachedUpdate('chat_member', ChatMemberUpdated::class);
+    }
+
+    public function chatJoinRequest(): ?ChatJoinRequest
+    {
+        return $this->getCachedUpdate('chat_join_request', ChatJoinRequest::class);
+    }
+
+    public function chatBoost(): ?ChatBoostUpdated
+    {
+        return $this->getCachedUpdate('chat_boost', ChatBoostUpdated::class);
+    }
+
+    public function removedChatBoost(): ?ChatBoostRemoved
+    {
+        return $this->getCachedUpdate('removed_chat_boost', ChatBoostRemoved::class);
+    }
 
 }
