@@ -2,7 +2,7 @@
 
 namespace telegramBotApiPhp\Traits;
 
-trait OtherTrait
+trait otherTrait
 {
 
     protected function getCachedValue($key, $callback)

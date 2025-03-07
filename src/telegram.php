@@ -13,17 +13,17 @@ use TelegramBotApiPhp\Types\{
     ShippingQuery
 };
 use TelegramBotApiPhp\Traits\{
-    IsChatTypes,
-    IsMedia,
-    IsUpdates,
-    MethodTrait,
-    OtherTrait
+    isChatTypes,
+    isMedia,
+    isUpdates,
+    method,
+    otherTrait
 };
 use telegramBotApiPhp\Types\ChatBoostRemoved;
 
 class Telegram
 {
-    use IsUpdates, IsChatTypes, IsMedia, MethodTrait, OtherTrait;
+    use isUpdates, isChatTypes, isMedia, method, otherTrait;
 
     private const API_URL = '{url}/bot{token}/{method}';
     private const FILE_URL = '{url}/file/bot{token}/{file_path}';

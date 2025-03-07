@@ -2,7 +2,7 @@
 
 namespace telegramBotApiPhp\Traits;
 
-trait IsMedia
+trait isMedia
 {
     protected static $mediaTypes = [
         'video' => self::_VIDEO,
