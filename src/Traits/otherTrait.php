@@ -117,6 +117,7 @@ trait otherTrait
                 return false;
             }
             $message = $this->message();
+
             foreach ([
                          'video' => self::_VIDEO,
                          'photo' => self::_PHOTO,
@@ -130,7 +131,10 @@ trait otherTrait
                          'game' => self::_GAME,
                          'location' => self::_LOCATION,
                      ] as $type => $constant) {
-                if (isset($message->$type)) {
+
+                $value = $message->$type;
+                if (is_object($value) || is_array($value)) {
+
                     return $constant;
                 }
             }
