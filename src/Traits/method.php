@@ -149,8 +149,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendPhoto($chat_id, $photo, string $caption = null, string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, int $message_thread_id = null, $reply_markup = null)
-    {
+    public function sendPhoto($chat_id, $photo, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, $reply_markup = null)  {
         return returnedMessage::create($this->bot('sendPhoto', compact(
             'chat_id', 'photo', 'caption', 'parse_mode', 'caption_entities', 'show_caption_above_media',
             'has_spoiler', 'disable_notification', 'protect_content', 'allow_paid_broadcast',
@@ -162,7 +161,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendAudio($chat_id, $audio, string $caption = null, string $parse_mode = null, $caption_entities = null, int $duration = null, string $performer = null, string $title = null, $thumbnail = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, int $message_thread_id = null, $reply_markup = null)
+    public function sendAudio($chat_id, $audio, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, ?int $duration = null, ?string $performer = null, ?string $title = null, $thumbnail = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, $reply_markup = null)
     {
         return returnedMessage::create($this->bot('sendAudio', compact(
             'chat_id', 'audio', 'caption', 'parse_mode', 'caption_entities', 'duration', 'performer',
@@ -172,10 +171,11 @@ trait method
     }
 
 
+
     /**
      * @return returnedMessage
      */
-    public function sendDocument($chat_id, $document, string $caption = null, string $parse_mode = null, $caption_entities = null, bool $disable_content_type_detection = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, int $message_thread_id = null, $thumbnail = null, $reply_markup = null)
+    public function sendDocument($chat_id, $document, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $disable_content_type_detection = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, $thumbnail = null, $reply_markup = null)
     {
         return returnedMessage::create($this->bot('sendDocument', compact(
             'chat_id', 'document', 'caption', 'parse_mode', 'caption_entities', 'disable_content_type_detection',
@@ -188,7 +188,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendVideo($chat_id, $video, string $caption = null, string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $supports_streaming = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, int $message_thread_id = null, int $duration = null, int $width = null, int $height = null, $thumbnail = null, $cover = null, int $start_timestamp = null, string $message_effect_id = null, $reply_markup = null)
+    public function sendVideo($chat_id, $video, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $supports_streaming = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, ?int $duration = null, ?int $width = null, ?int $height = null, $thumbnail = null, $cover = null, ?int $start_timestamp = null, ?string $message_effect_id = null, $reply_markup = null)
     {
         return returnedMessage::create($this->bot('sendVideo', compact(
             'chat_id', 'video', 'caption', 'parse_mode', 'caption_entities', 'show_caption_above_media',
@@ -202,7 +202,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendAnimation($chat_id, $animation, string $caption = null, string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, int $message_thread_id = null, int $duration = null, int $width = null, int $height = null, $thumbnail = null, string $message_effect_id = null, $reply_markup = null)
+    public function sendAnimation($chat_id, $animation, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, ?int $duration = null, ?int $width = null, ?int $height = null, $thumbnail = null, ?string $message_effect_id = null, $reply_markup = null)
     {
         return returnedMessage::create($this->bot('sendAnimation', compact(
             'chat_id', 'animation', 'caption', 'parse_mode', 'caption_entities', 'show_caption_above_media',
@@ -212,11 +212,10 @@ trait method
         )));
     }
 
-
     /**
      * @return returnedMessage
      */
-    public function sendVoice($chat_id, $voice, string $caption = null, string $parse_mode = null, $caption_entities = null, int $duration = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, int $message_thread_id = null, string $message_effect_id = null, $reply_markup = null)
+    public function sendVoice($chat_id, $voice, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, ?int $duration = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, ?string $message_effect_id = null, $reply_markup = null)
     {
         return returnedMessage::create($this->bot('sendVoice', compact(
             'chat_id', 'voice', 'caption', 'parse_mode', 'caption_entities', 'duration',
@@ -229,7 +228,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendVideoNote($chat_id, $video_note, int $duration = null, int $length = null, $thumbnail = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, int $message_thread_id = null, string $message_effect_id = null, $reply_markup = null)
+    public function sendVideoNote($chat_id, $video_note, ?int $duration = null, ?int $length = null, $thumbnail = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, ?string $message_effect_id = null, $reply_markup = null)
     {
         return returnedMessage::create($this->bot('sendVideoNote', compact(
             'chat_id', 'video_note', 'duration', 'length', 'thumbnail',
@@ -241,7 +240,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendPaidMedia($chat_id, int $star_count, array $media, string $payload = null, string $caption = null, string $parse_mode = null, array $caption_entities = null, bool $show_caption_above_media = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, $reply_markup = null, int $reply_parameters = null)
+    public function sendPaidMedia($chat_id, int $star_count, array $media, ?string $payload = null, ?string $caption = null, ?string $parse_mode = null, array $caption_entities = null, bool $show_caption_above_media = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, $reply_markup = null, ?int $reply_parameters = null)
     {
         return returnedMessage::create($this->bot('sendPaidMedia', compact(
             'chat_id', 'star_count', 'media', 'payload', 'caption', 'parse_mode',
@@ -254,7 +253,7 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendMediaGroup($chat_id, array $media, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, string $message_effect_id = null, $reply_parameters = null)
+    public function sendMediaGroup($chat_id, array $media, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?string $message_effect_id = null, $reply_parameters = null)
     {
         return returnedMessage::create($this->bot('sendMediaGroup', compact(
             'chat_id', 'media', 'disable_notification', 'protect_content',
@@ -263,18 +262,17 @@ trait method
         )));
     }
 
-
     /**
      * @return returnedMessage
      */
-    public function sendLocation($chat_id, float $latitude, float $longitude, float $horizontal_accuracy = null, int $live_period = null, int $heading = null, int $proximity_alert_radius = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, string $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
+    public function sendLocation($chat_id, float $latitude, float $longitude, ?float $horizontal_accuracy = null, ?int $live_period = null, ?int $heading = null, ?int $proximity_alert_radius = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
     {
         return returnedMessage::create($this->bot('sendLocation', compact(
             'chat_id', 'latitude', 'longitude', 'horizontal_accuracy', 'live_period', 'heading', 'proximity_alert_radius', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'business_connection_id', 'message_effect_id', 'reply_parameters', 'reply_markup'
         )));
     }
 
-    public function sendVenue($chat_id, float $latitude, float $longitude, string $title, string $address, string $foursquare_id = null, string $foursquare_type = null, string $google_place_id = null, string $google_place_type = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, string $business_connection_id = null, string $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
+    public function sendVenue($chat_id, float $latitude, float $longitude, string $title, string $address, ?string $foursquare_id = null, ?string $foursquare_type = null, ?string $google_place_id = null, ?string $google_place_type = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
     {
         return returnedMessage::create($this->bot('sendVenue', compact('chat_id', 'latitude', 'longitude', 'title', 'address', 'foursquare_id', 'foursquare_type', 'google_place_id', 'google_place_type', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'business_connection_id', 'message_effect_id', 'reply_parameters', 'reply_markup')));
     }
@@ -282,20 +280,20 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendContact($chat_id, string $phone_number, string $first_name, string $last_name, string $vcard = null, bool $disable_notification = false, bool $protect_content = false, int $reply_to_message_id = null, array $reply_markup = null, $allow_sending_without_reply = true)
+    public function sendContact($chat_id, string $phone_number, string $first_name, ?string $last_name = null, ?string $vcard = null, bool $disable_notification = false, bool $protect_content = false, ?int $reply_to_message_id = null, array $reply_markup = null, $allow_sending_without_reply = true)
     {
         return $this->bot('sendContact', compact('chat_id', 'phone_number', 'first_name', 'last_name', 'vcard', 'disable_notification', 'protect_content', 'reply_to_message_id', 'reply_markup', 'allow_sending_without_reply'));
     }
 
 
 
-    public function sendPoll($chat_id, $question, $options, $question_parse_mode = null, $question_entities = null, $is_anonymous = true, $type = "regular", $allows_multiple_answers = false, $correct_option_id = null, $explanation = null, $explanation_parse_mode = null, $explanation_entities = null, $open_period = null, $close_date = null, $is_closed = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, $message_effect_id = null, $reply_parameters = null, $reply_markup = null):returnedMessage
+    public function sendPoll($chat_id, $question, $options, ?string $question_parse_mode = null, $question_entities = null, $is_anonymous = true, $type = "regular", $allows_multiple_answers = false, $correct_option_id = null, $explanation = null, ?string $explanation_parse_mode = null, $explanation_entities = null, $open_period = null, $close_date = null, $is_closed = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null): returnedMessage
     {
         return returnedMessage::create($this->bot('sendPoll', compact('chat_id', 'question', 'question_parse_mode', 'question_entities', 'options', 'is_anonymous', 'type', 'allows_multiple_answers', 'correct_option_id', 'explanation', 'explanation_parse_mode', 'explanation_entities', 'open_period', 'close_date', 'is_closed', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
     }
 
 
-    public function sendDice($chat_id, $emoji = "🎲", $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, $message_effect_id = null, $reply_parameters = null, $reply_markup = null):returnedMessage
+    public function sendDice($chat_id, $emoji = "🎲", $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null): returnedMessage
     {
         return returnedMessage::create($this->bot('sendDice', compact('chat_id', 'emoji', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
     }
@@ -676,11 +674,10 @@ trait method
         return returned::create($this->bot('deleteMessages', compact('chat_id', 'message_ids')));
     }
 
-    public function sendSticker($chat_id, $sticker, $message_thread_id = null, $emoji = null, $disable_notification = false, $protect_content = false, $allow_paid_broadcast = false, $message_effect_id = null, $reply_parameters = null, $reply_markup = null): returnedMessage
+    public function sendSticker($chat_id, $sticker, $message_thread_id = null, $emoji = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null): returnedMessage
     {
         return returnedMessage::create($this->bot('sendSticker', compact('chat_id', 'sticker', 'message_thread_id', 'emoji', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
     }
-
     public function getStickerSet(string $name): returnedStickerSet
     {
         return returnedStickerSet::create($this->bot('getStickerSet', compact('name')));
@@ -816,7 +813,7 @@ trait method
         return returnedPreparedInlineMessage::create($this->bot('savePreparedInlineMessage', compact('user_id', 'result', 'allow_user_chats', 'allow_bot_chats', 'allow_group_chats', 'allow_channel_chats')));
     }
 
-    public function sendInvoice($chat_id, $title, $description, $payload, $currency, $prices, $provider_token = '', $max_tip_amount = 0, $suggested_tip_amounts = [], $start_parameter = '', $provider_data = '', $photo_url = '', $photo_size = 0, $photo_width = 0, $photo_height = 0, $need_name = false, $need_phone_number = false, $need_email = false, $need_shipping_address = false, $send_phone_number_to_provider = false, $send_email_to_provider = false, $is_flexible = false, $disable_notification = false, $protect_content = false, $allow_paid_broadcast = false, $message_effect_id = '', $reply_parameters = null, $reply_markup = null): returnedMessage
+    public function sendInvoice($chat_id, $title, $description, $payload, $currency, $prices, $provider_token = '', $max_tip_amount = 0, $suggested_tip_amounts = [], $start_parameter = '', $provider_data = '', $photo_url = '', $photo_size = 0, $photo_width = 0, $photo_height = 0, $need_name = false, $need_phone_number = false, $need_email = false, $need_shipping_address = false, $send_phone_number_to_provider = false, $send_email_to_provider = false, $is_flexible = false, $disable_notification = false, $protect_content = false, $allow_paid_broadcast = false, ?string $message_effect_id = '', $reply_parameters = null, $reply_markup = null): returnedMessage
     {
         return returnedMessage::create($this->bot('sendInvoice', compact(
             'chat_id', 'title', 'description', 'payload', 'currency', 'prices',
@@ -877,25 +874,21 @@ trait method
         )));
     }
 
-    public function sendGame($chat_id, $game_short_name, $business_connection_id = null, $message_thread_id = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, $message_effect_id = null, $reply_parameters = null, $reply_markup = null) {
+    public function sendGame($chat_id, $game_short_name, ?string $business_connection_id = null, ?int $message_thread_id = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null) {
         return returnedMessage::create($this->bot('sendGame', compact(
             'chat_id', 'game_short_name', 'business_connection_id', 'message_thread_id', 'disable_notification', 'protect_content',
             'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup'
         )));
     }
 
-    public function setGameScore($user_id, $score, $force = false, $disable_edit_message = false, $chat_id = null, $message_id = null, $inline_message_id = null):returnedMessage|returned {
+    public function setGameScore($user_id, $score, bool $force = false, bool $disable_edit_message = false, ?int $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null): returnedMessage|returned {
         return returnedMessage::create($this->bot('setGameScore', compact(
             'user_id', 'score', 'force', 'disable_edit_message', 'chat_id', 'message_id', 'inline_message_id'
         )));
     }
-
-    public function getGameHighScores($user_id, $chat_id = null, $message_id = null, $inline_message_id = null):returnedArrayOfGameHighScore {
+    public function getGameHighScores($user_id, ?int $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null): returnedArrayOfGameHighScore {
         return returnedArrayOfGameHighScore::create($this->bot('getGameHighScores', compact(
             'user_id', 'chat_id', 'message_id', 'inline_message_id'
         )));
     }
-
-
-
 }

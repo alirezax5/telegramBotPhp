@@ -17,7 +17,7 @@ abstract class BaseType implements JsonSerializable
         $this->data = $this->mapToObjects($data);
     }
 
-   
+
     protected function mapToObjects(array $data): array
     {
         foreach ($data as $key => $value) {
