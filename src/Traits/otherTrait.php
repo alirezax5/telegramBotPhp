@@ -22,11 +22,15 @@ trait otherTrait
             if ($this->isMessage()) {
                 return $this->message()->$property ?? $default;
             }
-            if ($this->isBusiness() && isset($this->businessMessage()->$property)) {
+            if ($this->isBusinessMessage() && isset($this->businessMessage()->$property)) {
                 return $this->businessMessage()->$property;
             }
-            if ($this->isCallbackQuery() && isset($this->callbackQuery()->message->$property)) {
-                return $this->callbackQuery()->message->$property;
+            if ($this->isCallbackQuery()) {
+
+                if (is_object($this->callbackQuery()->message) || is_array($this->callbackQuery()->message))
+                    return $this->callbackQuery()->message->$property;
+
+                return $this->callbackQuery()->$property;
             }
             if ($this->isChannelPost()) {
                 return $this->channelPost()->$property ?? $default;
@@ -40,7 +44,7 @@ trait otherTrait
             if ($this->isInlineQuery() && isset($this->inlineQuery()->$property)) {
                 return $this->inlineQuery()->$property;
             }
-            if ($this->isPreCheckoutQuery() && isset($this->preCheckoutQuery()->$property)) {
+            if ($this->isPreCheckoutQuery()) {
                 return $this->preCheckoutQuery()->$property;
             }
             return $default;
@@ -59,11 +63,17 @@ trait otherTrait
 
     public function fromId()
     {
+        if (($this->isCallbackQuery()) and $this->isPrivate())
+            return $this->getMessageData('chat')->id ?? null;
+
         return $this->getMessageData('from')->id ?? null;
     }
 
     public function chatId()
     {
+        if (($this->isPreCheckoutQuery()))
+            return $this->getMessageData('from')->id ?? null;
+
         return $this->getMessageData('chat')->id ?? null;
     }
 
@@ -117,6 +127,8 @@ trait otherTrait
                 return false;
             }
             $message = $this->message();
+            $messageArray = get_object_vars($message->video); // تبدیل شیء به آرایه
+            file_put_contents('1.json', json_encode($messageArray));
 
             foreach ([
                          'video' => self::_VIDEO,
@@ -131,8 +143,8 @@ trait otherTrait
                          'game' => self::_GAME,
                          'location' => self::_LOCATION,
                      ] as $type => $constant) {
-
                 $value = $message->$type;
+
                 if (is_object($value) || is_array($value)) {
 
                     return $constant;
@@ -216,6 +228,6 @@ trait otherTrait
 
     public function pathToUrl($path)
     {
-        return strtr($this->urlFile, ['{url}' => $this->urlForRequest, '{token}' => $this->bot_token]) . $path;
+        return strtr($this->urlFile, ['{url}' => $this->apiUrl, '{token}' => $this->botToken]) . $path;
     }
 }

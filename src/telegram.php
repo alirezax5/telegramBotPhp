@@ -45,6 +45,8 @@ class Telegram
     const _GAME = 'game';
     const _TEXT = 'text';
     const _MEDIA = 'media';
+    public $urlFile = '{url}/file/bot{token}';
+
     private const CACHE_KEYS = [
         'message' => null,
         'edited_message' => null,
@@ -91,10 +93,11 @@ class Telegram
     private string $apiUrl;
     private string $fileUrl;
 
-    public function __construct(string $token, string $apiUrl = 'https://api.telegram.org')
+    public function __construct(string $token, string $apiUrl = 'https://api.telegram.org',$urlForFile = '{url}/file/bot{token}')
     {
         $this->botToken = $token;
         $this->apiUrl = $apiUrl;
+        $this->urlFile = (string)$urlForFile;
         $this->fileUrl = str_replace('{url}', $apiUrl, self::FILE_URL);
         $this->initialize();
     }

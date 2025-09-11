@@ -6,7 +6,7 @@ trait isChatTypes
 {
     private function isChatType(string $type): bool
     {
-        return $this->chatType() === $type;
+        return $this->chatType() == $type;
     }
 
     public function isPrivate(): bool

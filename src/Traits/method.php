@@ -628,7 +628,7 @@ trait method
         return returnedChatAdministratorRights::create($this->bot('getMyDefaultAdministratorRights', compact('for_channels')));
     }
 
-    public function editMessageText($chat_id = null, $message_id = null, $inline_message_id = null, $text, $parse_mode = null, $entities = null, $link_preview_options = null, $reply_markup = null): returnedMessage
+    public function editMessageText($chat_id = null, $message_id = null, $text, $parse_mode = null, $reply_markup = null, $inline_message_id = null, $entities = null, $link_preview_options = null): returnedMessage
     {
         return returnedMessage::create($this->bot('editMessageText', compact('chat_id', 'message_id', 'inline_message_id', 'text', 'parse_mode', 'entities', 'link_preview_options', 'reply_markup')));
     }
