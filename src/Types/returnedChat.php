@@ -15,7 +15,7 @@ namespace telegramBotApiPhp\Types;
  * @method bool issetDescription()
  * @method bool issetResult()
  */
-class returnedChat extends base
+class returnedChat extends BaseType
 {
     static protected $map = [
         'ok' => true,

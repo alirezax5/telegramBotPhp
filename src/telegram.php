@@ -93,7 +93,7 @@ class Telegram
     private string $apiUrl;
     private string $fileUrl;
 
-    public function __construct(string $token, string $apiUrl = 'https://api.telegram.org',$urlForFile = '{url}/file/bot{token}')
+    public function __construct(string $token, string $apiUrl = 'https://api.telegram.org', $urlForFile = '{url}/file/bot{token}')
     {
         $this->botToken = $token;
         $this->apiUrl = $apiUrl;
@@ -108,9 +108,15 @@ class Telegram
         $this->clearCache();
     }
 
-    private function getInputData(): array
+    public function getInputData(): array
     {
         return json_decode(file_get_contents('php://input'), true) ?? [];
+    }
+
+    public function setInputData($data)
+    {
+        $this->clearCache();
+        return $this->data = $data;
     }
 
     private function clearCache(): void
