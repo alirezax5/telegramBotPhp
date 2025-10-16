@@ -54,6 +54,7 @@ trait otherTrait
             return $default;
         });
     }
+
     public function messageID()
     {
         return $this->getMessageData('message_id');
@@ -176,6 +177,36 @@ trait otherTrait
                      ] as $type => $property) {
                 if (isset($message->$type)) {
                     return $message->$type->$property;
+                }
+            }
+            return null;
+        });
+    }
+
+    public function mimeType()
+    {
+        return $this->getCachedValue('mime_type', function () {
+            if (!$this->isMessage()) {
+                return null;
+            }
+            $message = $this->message();
+            foreach ([
+                         'document' => 'mime_type',
+                         'audio' => 'mime_type',
+                         'photo' => 'mime_type',
+                         'video_note' => 'mime_type',
+                         'video' => 'mime_type',
+                         'voice' => 'mime_type',
+                         'sticker' => 'mime_type',
+                         'animation' => 'mime_type',
+                     ] as $type => $property) {
+                if (is_object($message->$type) or ($type == 'photo') and is_array($message->$type)) {
+
+                    if ($type == 'photo') {
+                        return $message->photo[0]->$property;
+
+                    }
+                    return $message->{$type}->{$property};
                 }
             }
             return null;

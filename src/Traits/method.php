@@ -4,9 +4,7 @@
 namespace telegramBotApiPhp\Traits;
 
 
-use telegramBotApiPhp\Types\{ArrayOfBotCommand,
-    ChatAdministratorRights,
-    MenuButton,
+use telegramBotApiPhp\Types\{
     returned,
     returnedArrayOfSticker,
     returnedBotDescription,
@@ -16,7 +14,6 @@ use telegramBotApiPhp\Types\{ArrayOfBotCommand,
     returnedChatInviteLink,
     returnedChatMember,
     returnedFile,
-    returnedGameHighScore,
     returnedGifts,
     returnedInt,
     returnedMenuButton,
@@ -27,7 +24,8 @@ use telegramBotApiPhp\Types\{ArrayOfBotCommand,
     returnedUser,
     returnedUserProfilePhotos,
     returnedWebhookInfo,
-    SentWebAppMessage
+    SentWebAppMessage,
+    returnedStory
 };
 
 trait method
@@ -149,7 +147,8 @@ trait method
     /**
      * @return returnedMessage
      */
-    public function sendPhoto($chat_id, $photo, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, $reply_markup = null)  {
+    public function sendPhoto($chat_id, $photo, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, $reply_markup = null)
+    {
         return returnedMessage::create($this->bot('sendPhoto', compact(
             'chat_id', 'photo', 'caption', 'parse_mode', 'caption_entities', 'show_caption_above_media',
             'has_spoiler', 'disable_notification', 'protect_content', 'allow_paid_broadcast',
@@ -169,7 +168,6 @@ trait method
             'business_connection_id', 'message_thread_id', 'reply_markup'
         )));
     }
-
 
 
     /**
@@ -286,7 +284,6 @@ trait method
     }
 
 
-
     public function sendPoll($chat_id, $question, $options, ?string $question_parse_mode = null, $question_entities = null, $is_anonymous = true, $type = "regular", $allows_multiple_answers = false, $correct_option_id = null, $explanation = null, ?string $explanation_parse_mode = null, $explanation_entities = null, $open_period = null, $close_date = null, $is_closed = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null): returnedMessage
     {
         return returnedMessage::create($this->bot('sendPoll', compact('chat_id', 'question', 'question_parse_mode', 'question_entities', 'options', 'is_anonymous', 'type', 'allows_multiple_answers', 'correct_option_id', 'explanation', 'explanation_parse_mode', 'explanation_entities', 'open_period', 'close_date', 'is_closed', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
@@ -384,7 +381,7 @@ trait method
         return returnedChatInviteLink::create($this->bot('editChatInviteLink', compact('chat_id', 'invite_link', 'name', 'expire_date', 'member_limit', 'creates_join_request')));
     }
 
-    public function createChatSubscriptionInviteLink($chat_id, $name , $subscription_period, $subscription_price): returnedChatInviteLink
+    public function createChatSubscriptionInviteLink($chat_id, $name, $subscription_period, $subscription_price): returnedChatInviteLink
     {
         return returnedChatInviteLink::create($this->bot('createChatSubscriptionInviteLink', compact('chat_id', 'name', 'subscription_period', 'subscription_price')));
     }
@@ -628,7 +625,7 @@ trait method
         return returnedChatAdministratorRights::create($this->bot('getMyDefaultAdministratorRights', compact('for_channels')));
     }
 
-    public function editMessageText($chat_id, $message_id , $text, $parse_mode = null, $reply_markup = null, $inline_message_id = null, $entities = null, $link_preview_options = null): returnedMessage
+    public function editMessageText($chat_id, $message_id, $text, $parse_mode = null, $reply_markup = null, $inline_message_id = null, $entities = null, $link_preview_options = null): returnedMessage
     {
         return returnedMessage::create($this->bot('editMessageText', compact('chat_id', 'message_id', 'inline_message_id', 'text', 'parse_mode', 'entities', 'link_preview_options', 'reply_markup')));
     }
@@ -678,6 +675,7 @@ trait method
     {
         return returnedMessage::create($this->bot('sendSticker', compact('chat_id', 'sticker', 'message_thread_id', 'emoji', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
     }
+
     public function getStickerSet(string $name): returnedStickerSet
     {
         return returnedStickerSet::create($this->bot('getStickerSet', compact('name')));
@@ -762,7 +760,7 @@ trait method
         return returnedGifts::create($this->bot('getAvailableGifts'));
     }
 
-    public function sendGift($user_id, $chat_id , $gift_id, $pay_for_upgrade = null, $text = null, $text_parse_mode = null, $text_entities = null): returned
+    public function sendGift($user_id, $chat_id, $gift_id, $pay_for_upgrade = null, $text = null, $text_parse_mode = null, $text_entities = null): returned
     {
         return returned::create($this->bot('sendGift', compact('user_id', 'chat_id', 'gift_id', 'pay_for_upgrade', 'text', 'text_parse_mode', 'text_entities')));
     }
@@ -874,21 +872,66 @@ trait method
         )));
     }
 
-    public function sendGame($chat_id, $game_short_name, ?string $business_connection_id = null, ?int $message_thread_id = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null) {
+    public function sendGame($chat_id, $game_short_name, ?string $business_connection_id = null, ?int $message_thread_id = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
+    {
         return returnedMessage::create($this->bot('sendGame', compact(
             'chat_id', 'game_short_name', 'business_connection_id', 'message_thread_id', 'disable_notification', 'protect_content',
             'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup'
         )));
     }
 
-    public function setGameScore($user_id, $score, bool $force = false, bool $disable_edit_message = false, ?int $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null): returnedMessage|returned {
+    public function setGameScore($user_id, $score, bool $force = false, bool $disable_edit_message = false, ?int $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null): returnedMessage|returned
+    {
         return returnedMessage::create($this->bot('setGameScore', compact(
             'user_id', 'score', 'force', 'disable_edit_message', 'chat_id', 'message_id', 'inline_message_id'
         )));
     }
-    public function getGameHighScores($user_id, ?int $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null): returnedArrayOfGameHighScore {
-        return returnedArrayOfGameHighScore::create($this->bot('getGameHighScores', compact(
+
+    public function getGameHighScores($user_id, ?int $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null): returnedMessage|returned
+    {
+        return returnedMessage::create($this->bot('getGameHighScores', compact(
             'user_id', 'chat_id', 'message_id', 'inline_message_id'
+        )));
+    }
+
+    public function getBusinessAccountGifts($business_connection_id, $owned_gift_id): returned
+    {
+        return returned::create($this->bot('getBusinessAccountGifts', compact(
+            'business_connection_id', 'owned_gift_id'
+        )));
+    }
+    public function convertGiftToStars($business_connection_id, $owned_gift_id): returned
+    {
+        return returned::create($this->bot('convertGiftToStars', compact(
+            'business_connection_id', 'owned_gift_id'
+        )));
+    }
+
+    public function transferGift($business_connection_id, $owned_gift_id, $new_owner_chat_id, $star_count = null): returned
+    {
+        return returned::create($this->bot('transferGift', compact(
+            'business_connection_id', 'new_owner_chat_id', 'owned_gift_id', 'star_count'
+        )));
+    }
+
+    public function upgradeGift($business_connection_id, $owned_gift_id, $keep_original_details = null, $star_count = null): returned
+    {
+        return returned::create($this->bot('upgradeGift', compact(
+            'business_connection_id', 'keep_original_details', 'owned_gift_id', 'star_count'
+        )));
+    }
+
+    public function postStory($business_connection_id, $content, $active_period, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, $areas = null, bool $post_to_chat_page = null, bool $protect_content = null): returnedStory|returned
+    {
+        return returnedStory::create($this->bot('postStory', compact(
+            'business_connection_id', 'active_period', 'content', 'caption', 'parse_mode', 'caption_entities', 'areas'
+        )));
+    }
+
+    public function editStory($business_connection_id, $story_id, $content, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, $areas = null): returnedStory|returned
+    {
+        return returnedStory::create($this->bot('editStory', compact(
+            'business_connection_id', 'story_id', 'content', 'caption', 'parse_mode', 'caption_entities', 'areas'
         )));
     }
 }
