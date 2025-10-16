@@ -16,6 +16,7 @@ trait otherTrait
         return $value;
     }
 
+
     protected function getMessageData($property, $default = null)
     {
         return $this->getCachedValue($property, function () use ($property, $default) {
@@ -47,10 +48,12 @@ trait otherTrait
             if ($this->isPreCheckoutQuery()) {
                 return $this->preCheckoutQuery()->$property;
             }
+            if ($this->isMyChatMember()) {
+                return $this->myChatMember()->$property;
+            }
             return $default;
         });
     }
-
     public function messageID()
     {
         return $this->getMessageData('message_id');
