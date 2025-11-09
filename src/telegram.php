@@ -71,7 +71,7 @@ class Telegram
         'chat_join_request' => null,
         'chat_boost' => null,
     ];
-    private $caches = [
+    private const caches = [
         'chatType' => null,
         'text' => null,
         'message_id' => null,
@@ -89,6 +89,7 @@ class Telegram
     ];
     private array $data = [];
     private array $cacheType = self::CACHE_KEYS;
+    private array $cacheField  = self::caches;
     private string $botToken;
     private string $apiUrl;
     private string $fileUrl;
@@ -119,9 +120,10 @@ class Telegram
         return $this->data = $data;
     }
 
-    private function clearCache(): void
+    public function clearCache(): void
     {
         $this->cacheType = self::CACHE_KEYS;
+        $this->cacheField = self::caches;
     }
 
     public function bot(string $method, array $data = [], bool $isUpload = false): array

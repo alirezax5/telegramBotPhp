@@ -55,7 +55,7 @@ abstract class BaseType implements JsonSerializable
         return $this->toArray();
     }
 
-    public static function create(array $data): static
+    public static function create(?array $data): static
     {
         return new static($data);
     }

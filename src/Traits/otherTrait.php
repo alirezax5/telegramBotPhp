@@ -7,12 +7,12 @@ trait otherTrait
 
     protected function getCachedValue($key, $callback)
     {
-        if (isset($this->caches[$key])) {
-            return $this->caches[$key];
+        if (isset($this->cacheField[$key])) {
+            return $this->cacheField[$key];
         }
 
         $value = $callback();
-        $this->caches[$key] = $value;
+        $this->cacheField[$key] = $value;
         return $value;
     }
 
