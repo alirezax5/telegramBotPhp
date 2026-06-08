@@ -4,8 +4,8 @@
 namespace telegramBotApiPhp\Traits;
 
 
-use telegramBotApiPhp\Types\{
-    returned,
+use baleBotPhp\Types\returnedTransaction;
+use telegramBotApiPhp\Types\{returned,
     returnedArrayOfSticker,
     returnedBotDescription,
     returnedBotName,
@@ -19,57 +19,145 @@ use telegramBotApiPhp\Types\{
     returnedMenuButton,
     returnedMessage,
     returnedMessageId,
+    returnedPreparedInlineMessage,
+    returnedStarAmount,
+    returnedStarTransaction,
     returnedStickerSet,
     returnedString,
     returnedUser,
+    returnedUserProfileAudios,
     returnedUserProfilePhotos,
     returnedWebhookInfo,
     SentWebAppMessage,
-    returnedStory
+    returnedStory,
+    returnedSentGuestMessage
 };
 
 trait method
 {
 
+    /**
+     * آماده‌سازی داده‌ها برای ارسال به API
+     */
+    private function prepareBotData(array $data): array
+    {
+        // آماده‌سازی reply_markup
+        if (isset($data['reply_markup']) && is_array($data['reply_markup'])) {
+            $data['reply_markup'] = json_encode(
+                $data['reply_markup'],
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            );
+        }
+
+        // آماده‌سازی رسانه‌ها برای آپلود
+        $data = $this->prepareMediaForUpload($data);
+
+        return $data;
+    }
+
+    /**
+     * تبدیل خودکار مسیر فایل‌های محلی به CURLFile
+     */
+    private function prepareMediaForUpload(array $data): array
+    {
+        $fileFields = [
+            'photo', 'video', 'audio', 'voice', 'animation', 'document',
+            'sticker', 'video_note', 'thumbnail', 'certificate'
+        ];
+
+        foreach ($fileFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = $this->prepareFileInput($data[$field]);
+            }
+        }
+
+        // پشتیبانی از sendMediaGroup (media به صورت آرایه جیسون)
+        if (isset($data['media']) && is_array($data['media'])) {
+            $data['media'] = $this->prepareMediaGroup($data['media']);
+        }
+
+        // پشتیبانی از media در editMessageMedia و غیره
+        if (isset($data['media']) && is_array($data['media']) && isset($data['media']['media'])) {
+            $data['media']['media'] = $this->prepareFileInput($data['media']['media']);
+        }
+
+        return $data;
+    }
+
+    /**
+     * آماده‌سازی تک فایل
+     */
+    private function prepareFileInput($input)
+    {
+        // اگر قبلاً CURLFile باشد
+        if ($input instanceof \CURLFile) {
+            return $input;
+        }
+
+        // اگر مسیر فایل محلی معتبر باشد
+        if (is_string($input) && file_exists($input) && is_readable($input)) {
+            return new \CURLFile($input);
+        }
+
+        // اگر URL یا file_id باشد، همان را برگردان
+        if (is_string($input)) {
+            return $input;
+        }
+
+        // در غیر این صورت همان را برگردان (ممکن است resource یا چیز دیگر باشد)
+        return $input;
+    }
+
+    /**
+     * آماده‌سازی آرایه media برای sendMediaGroup
+     */
+    private function prepareMediaGroup(array $mediaItems): string
+    {
+        foreach ($mediaItems as &$item) {
+            if (is_array($item) && isset($item['media'])) {
+                $item['media'] = $this->prepareFileInput($item['media']);
+            }
+        }
+
+        return json_encode($mediaItems, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
+     * متد پایه فراخوانی API
+     */
+    private function call(string $method, array $data = [], bool $isUpload = false): ?\stdClass
+    {
+        $data = $this->prepareBotData($data);
+        return $this->bot($method, $data, $isUpload);
+    }
     // webhook Method
-    /**
-     * @return returnedMessage
-     */
-    public function getUpdates($offset = 0, int $limit = 10, $timeout = null, $allowed_updates = [])
+
+    // ====================== Updates & Webhook ======================
+
+    public function getUpdates(int $offset = 0, int $limit = 10, ?int $timeout = null, ?array $allowed_updates = null): returnedMessage
     {
-        return returnedMessage::create($this->bot('getUpdates', compact('offset', 'limit')));
+        return returnedMessage::create($this->call('getUpdates', compact('offset', 'limit', 'timeout', 'allowed_updates')));
     }
 
-    /**
-     * @return returned
-     */
-    public function setWebhook($url, $certificate = null, $ip_address = null, $max_connections = null, $allowed_updates = null, $drop_pending_updates = false, $secret_token = null)
+    public function setWebhook(string $url, array $options = []): returned
     {
-        return returned::create($this->bot('setWebhook', compact('url', 'certificate', 'ip_address', 'max_connections', 'allowed_updates', 'drop_pending_updates', 'secret_token')));
+        $data = ['url' => $url] + $options;
+        return returned::create($this->call('setWebhook', $data));
     }
 
-    /**
-     * @return returned
-     */
-    public function deleteWebhook($drop_pending_updates = false)
+    public function deleteWebhook(): returned
     {
-        return returned::create($this->bot('deleteWebhook', compact('drop_pending_updates')));
+        return returned::create($this->call('deleteWebhook'));
     }
 
-    /**
-     * @return returnedWebhookInfo
-     */
-    public function getWebhookInfo()
+    public function getWebhookInfo(): returnedWebhookInfo
     {
-        return returnedWebhookInfo::create($this->bot('getWebhookInfo'));
+        return returnedWebhookInfo::create($this->call('getWebhookInfo'));
     }
 
-    /**
-     * @return returnedUser
-     */
-    public function getMe()
+    public function getMe(): returnedUser
     {
-        return returnedUser::create($this->bot('getMe'));
+        return returnedUser::create($this->call('getMe'));
     }
 
     /**
@@ -77,7 +165,7 @@ trait method
      */
     public function logOut()
     {
-        return returned::create($this->bot('logOut'));
+        return returned::create($this->call('logOut'));
     }
 
     /**
@@ -85,874 +173,1883 @@ trait method
      */
     public function close()
     {
-        return returned::create($this->bot('close'));
+        return returned::create($this->call('close'));
     }
+
+    // ====================== Sending Messages ======================
 
     /**
      * @return returnedMessage
      */
-    public function sendMessage($chat_id, string $text, string $parse_mode = 'html', bool $disable_web_page_preview = false, $reply_markup = null, bool $disable_notification = false, bool $protect_content = false, ?int $reply_to_message_id = null, $entities = null, $allow_sending_without_reply = null, $allow_paid_broadcast = false, $business_connection_id = null)
+    public function sendMessage(int|string $chat_id, string $text, array $options = []): returnedMessage
     {
-        return returnedMessage::create($this->bot('sendMessage', compact(
-            'chat_id', 'text', 'parse_mode', 'disable_web_page_preview', 'reply_markup', 'disable_notification',
-            'protect_content', 'reply_to_message_id', 'entities', 'allow_sending_without_reply', 'allow_paid_broadcast',
-            'business_connection_id'
-        )));
+        $data = compact('chat_id', 'text') + $options;
+        return returnedMessage::create($this->call('sendMessage', $data));
     }
 
 
     /**
      * @return returnedMessage
      */
-    public function forwardMessage($chat_id, $from_chat_id, int $message_id, ?int $message_thread_id = null, ?int $video_start_timestamp = null, bool $disable_notification = false, bool $protect_content = false)
+    public function forwardMessage($chat_id, $from_chat_id, int $message_id, array $options = []): returnedMessage
     {
-        return returnedMessage::create($this->bot('forwardMessage', compact(
-            'chat_id', 'from_chat_id', 'message_id', 'message_thread_id', 'video_start_timestamp',
-            'disable_notification', 'protect_content'
-        )));
-    }
-
-
-    /**
-     * @return returnedMessageId
-     */
-    public function copyMessage($chat_id, $from_chat_id, int $message_id, $caption = null, $parse_mode = 'html', $reply_markup = null, bool $disable_notification = false, bool $protect_content = false, $reply_to_message_id = null, $allow_sending_without_reply = true)
-    {
-        return returnedMessageId::create($this->bot('copyMessage', compact('chat_id', 'from_chat_id', 'disable_notification', 'protect_content', 'message_id', 'reply_markup', 'caption', 'parse_mode', 'reply_to_message_id', 'allow_sending_without_reply')));
-    }
-
-    public function forwardMessages($chat_id, $from_chat_id, array $message_ids, ?int $message_thread_id = null, bool $disable_notification = false, bool $protect_content = false): returnedArrayOfMessageId
-    {
-        return returnedArrayOfMessageId::create($this->bot('forwardMessages', compact(
-            'chat_id', 'from_chat_id', 'message_ids', 'message_thread_id', 'disable_notification', 'protect_content'
-        )));
-    }
-
-    public function copyMessages($chat_id, $from_chat_id, array $message_ids, ?int $message_thread_id = null, bool $disable_notification = false, bool $protect_content = false, bool $remove_caption = false): returnedArrayOfMessageId
-    {
-        return returnedArrayOfMessageId::create($this->bot('copyMessages', compact(
-            'chat_id', 'from_chat_id', 'message_ids', 'message_thread_id', 'disable_notification',
-            'protect_content', 'remove_caption'
-        )));
+        $data = compact('chat_id', 'from_chat_id', 'message_id') + $options;
+        return returnedMessage::create($this->call('forwardMessage', $data));
     }
 
     /**
      * @return returnedMessageId
      */
-    public function copyMessageNonCaption($chat_id, $from_chat_id, int $message_id, $parse_mode = 'html', $reply_markup = null, bool $disable_notification = false, bool $protect_content = false, $reply_to_message_id = null, $allow_sending_without_reply = true)
+    public function copyMessage($chat_id, $from_chat_id, int $message_id, array $options = []): returnedMessageId
     {
-        return returnedMessageId::create($this->bot('copyMessage', compact('chat_id', 'from_chat_id', 'disable_notification', 'protect_content', 'message_id', 'reply_markup', 'parse_mode', 'reply_to_message_id', 'allow_sending_without_reply')));
+        $data = compact('chat_id', 'from_chat_id', 'message_id') + $options;
+        return returnedMessageId::create($this->call('copyMessage', $data));
+    }
+
+    public function forwardMessages($chat_id, $from_chat_id, array $message_ids): returnedArrayOfMessageId
+    {
+        $data = compact('chat_id', 'from_chat_id', 'message_ids') + $options;
+
+        return returnedArrayOfMessageId::create($this->call('forwardMessages', $data));
+    }
+
+    public function copyMessages($chat_id, $from_chat_id, array $message_ids, array $options = []): returnedArrayOfMessageId
+    {
+        $data = compact('chat_id', 'from_chat_id', 'message_ids') + $options;
+
+        return returnedArrayOfMessageId::create($this->call('copyMessages', $data));
+    }
+
+    /**
+     * @return returnedMessageId
+     */
+    public function copyMessageNonCaption($chat_id, $from_chat_id, int $message_id, array $options = [])
+    {
+        $data = compact('chat_id', 'from_chat_id', 'message_id') + $options;
+
+        return returnedMessageId::create($this->call('copyMessage', $data));
     }
 
     /**
      * @return returnedMessage
      */
-    public function sendPhoto($chat_id, $photo, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, $reply_markup = null)
+    public function sendPhoto($chat_id, $photo, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendPhoto', compact(
-            'chat_id', 'photo', 'caption', 'parse_mode', 'caption_entities', 'show_caption_above_media',
-            'has_spoiler', 'disable_notification', 'protect_content', 'allow_paid_broadcast',
-            'business_connection_id', 'message_thread_id', 'reply_markup'
-        )));
-    }
+        $data = compact('chat_id', 'photo') + $options;
 
+        return returnedMessage::create($this->call('sendPhoto', $data));
+    }
 
     /**
      * @return returnedMessage
      */
-    public function sendAudio($chat_id, $audio, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, ?int $duration = null, ?string $performer = null, ?string $title = null, $thumbnail = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, $reply_markup = null)
+    public function sendLivePhoto($chat_id, $live_photo, $photo, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendAudio', compact(
-            'chat_id', 'audio', 'caption', 'parse_mode', 'caption_entities', 'duration', 'performer',
-            'title', 'thumbnail', 'disable_notification', 'protect_content', 'allow_paid_broadcast',
-            'business_connection_id', 'message_thread_id', 'reply_markup'
-        )));
-    }
+        $data = compact('chat_id', 'live_photo', 'photo') + $options;
 
-
-    /**
-     * @return returnedMessage
-     */
-    public function sendDocument($chat_id, $document, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $disable_content_type_detection = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, $thumbnail = null, $reply_markup = null)
-    {
-        return returnedMessage::create($this->bot('sendDocument', compact(
-            'chat_id', 'document', 'caption', 'parse_mode', 'caption_entities', 'disable_content_type_detection',
-            'disable_notification', 'protect_content', 'allow_paid_broadcast', 'business_connection_id',
-            'message_thread_id', 'thumbnail', 'reply_markup'
-        )));
-    }
-
-
-    /**
-     * @return returnedMessage
-     */
-    public function sendVideo($chat_id, $video, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $supports_streaming = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, ?int $duration = null, ?int $width = null, ?int $height = null, $thumbnail = null, $cover = null, ?int $start_timestamp = null, ?string $message_effect_id = null, $reply_markup = null)
-    {
-        return returnedMessage::create($this->bot('sendVideo', compact(
-            'chat_id', 'video', 'caption', 'parse_mode', 'caption_entities', 'show_caption_above_media',
-            'has_spoiler', 'supports_streaming', 'disable_notification', 'protect_content', 'allow_paid_broadcast',
-            'business_connection_id', 'message_thread_id', 'duration', 'width', 'height', 'thumbnail', 'cover',
-            'start_timestamp', 'message_effect_id', 'reply_markup'
-        )));
+        return returnedMessage::create($this->call('sendLivePhoto', $data));
     }
 
 
     /**
      * @return returnedMessage
      */
-    public function sendAnimation($chat_id, $animation, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, bool $show_caption_above_media = false, bool $has_spoiler = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, ?int $duration = null, ?int $width = null, ?int $height = null, $thumbnail = null, ?string $message_effect_id = null, $reply_markup = null)
+
+    public function sendAudio($chat_id, $audio, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendAnimation', compact(
-            'chat_id', 'animation', 'caption', 'parse_mode', 'caption_entities', 'show_caption_above_media',
-            'has_spoiler', 'disable_notification', 'protect_content', 'allow_paid_broadcast',
-            'business_connection_id', 'message_thread_id', 'duration', 'width', 'height', 'thumbnail',
-            'message_effect_id', 'reply_markup'
-        )));
+        $data = compact('chat_id', 'audio') + $options;
+
+        return returnedMessage::create($this->call('sendAudio', $data));
     }
 
     /**
      * @return returnedMessage
      */
-    public function sendVoice($chat_id, $voice, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, ?int $duration = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, ?string $message_effect_id = null, $reply_markup = null)
+
+    public function sendDocument($chat_id, $document, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendVoice', compact(
-            'chat_id', 'voice', 'caption', 'parse_mode', 'caption_entities', 'duration',
-            'disable_notification', 'protect_content', 'allow_paid_broadcast',
-            'business_connection_id', 'message_thread_id', 'message_effect_id', 'reply_markup'
-        )));
+        $data = compact('chat_id', 'document') + $options;
+
+        return returnedMessage::create($this->call('sendDocument', $data));
     }
 
 
     /**
      * @return returnedMessage
      */
-    public function sendVideoNote($chat_id, $video_note, ?int $duration = null, ?int $length = null, $thumbnail = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?int $message_thread_id = null, ?string $message_effect_id = null, $reply_markup = null)
+
+    public function sendVideo($chat_id, $video, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendVideoNote', compact(
-            'chat_id', 'video_note', 'duration', 'length', 'thumbnail',
-            'disable_notification', 'protect_content', 'allow_paid_broadcast',
-            'business_connection_id', 'message_thread_id', 'message_effect_id', 'reply_markup'
-        )));
+        $data = compact('chat_id', 'video') + $options;
+
+        return returnedMessage::create($this->call('sendVideo', $data));
     }
 
     /**
      * @return returnedMessage
      */
-    public function sendPaidMedia($chat_id, int $star_count, array $media, ?string $payload = null, ?string $caption = null, ?string $parse_mode = null, ?array $caption_entities = null, bool $show_caption_above_media = false, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, $reply_markup = null, ?int $reply_parameters = null)
+
+    public function sendAnimation($chat_id, $animation, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendPaidMedia', compact(
-            'chat_id', 'star_count', 'media', 'payload', 'caption', 'parse_mode',
-            'caption_entities', 'show_caption_above_media', 'disable_notification',
-            'protect_content', 'allow_paid_broadcast', 'business_connection_id',
-            'reply_markup', 'reply_parameters'
-        )));
+        $data = compact('chat_id', 'animation') + $options;
+
+        return returnedMessage::create($this->call('sendAnimation', $data));
+    }
+
+
+    /**
+     * @return returnedMessage
+     */
+
+    public function sendVoice($chat_id, $animation, array $options = [])
+    {
+        $data = compact('chat_id', 'voice') + $options;
+
+        return returnedMessage::create($this->call('sendVoice', $data));
+    }
+
+
+    /**
+     * @return returnedMessage
+     */
+
+    public function sendVideoNote($chat_id, $animation, array $options = [])
+    {
+        $data = compact('chat_id', 'video_note') + $options;
+
+        return returnedMessage::create($this->call('sendVideoNote', $data));
+    }
+
+
+    /**
+     * @return returnedMessage
+     */
+
+    public function sendPaidMedia($chat_id, $star_count, array $media, array $options = [])
+    {
+        $data = compact('chat_id', 'star_count', 'media') + $options;
+
+        return returnedMessage::create($this->call('sendPaidMedia', $data));
+    }
+
+
+    /**
+     * @return returnedMessage
+     */
+    public function sendMediaGroup($chat_id, array $media, array $options = [])
+    {
+        $data = compact('chat_id', 'media') + $options;
+
+        return returnedMessage::create($this->call('sendMediaGroup', $data));
+    }
+
+
+    /**
+     * @return returnedMessage
+     */
+
+    public function sendLocation($chat_id, float $latitude, float $longitude, array $options = [])
+    {
+        $data = compact('chat_id', 'latitude', 'longitude') + $options;
+
+        return returnedMessage::create($this->call('sendLocation', $data));
     }
 
     /**
      * @return returnedMessage
      */
-    public function sendMediaGroup($chat_id, array $media, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?string $message_effect_id = null, $reply_parameters = null)
+
+    public function sendVenue($chat_id, float $latitude, float $longitude, string $title, string $address, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendMediaGroup', compact(
-            'chat_id', 'media', 'disable_notification', 'protect_content',
-            'allow_paid_broadcast', 'business_connection_id',
-            'message_effect_id', 'reply_parameters'
-        )));
+        $data = compact('chat_id', 'latitude', 'longitude', 'title', 'address') + $options;
+
+        return returnedMessage::create($this->call('sendVenue', $data));
     }
 
     /**
      * @return returnedMessage
      */
-    public function sendLocation($chat_id, float $latitude, float $longitude, ?float $horizontal_accuracy = null, ?int $live_period = null, ?int $heading = null, ?int $proximity_alert_radius = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
+
+    public function sendContact($chat_id, string $phone_number, string $first_name, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendLocation', compact(
-            'chat_id', 'latitude', 'longitude', 'horizontal_accuracy', 'live_period', 'heading', 'proximity_alert_radius', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'business_connection_id', 'message_effect_id', 'reply_parameters', 'reply_markup'
-        )));
+        $data = compact('chat_id', 'phone_number', 'first_name') + $options;
+
+        return returnedMessage::create($this->call('sendContact', $data));
     }
 
-    public function sendVenue($chat_id, float $latitude, float $longitude, string $title, string $address, ?string $foursquare_id = null, ?string $foursquare_type = null, ?string $google_place_id = null, ?string $google_place_type = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $business_connection_id = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
+
+    /**
+     * @return returnedMessage
+     */
+
+    public function sendPoll($chat_id, $question, $options, array $moreOptions = [])
     {
-        return returnedMessage::create($this->bot('sendVenue', compact('chat_id', 'latitude', 'longitude', 'title', 'address', 'foursquare_id', 'foursquare_type', 'google_place_id', 'google_place_type', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'business_connection_id', 'message_effect_id', 'reply_parameters', 'reply_markup')));
+        $data = compact('chat_id', 'question', 'options') + $moreOptions;
+
+        return returnedMessage::create($this->call('sendPoll', $data));
+    }
+
+
+    /**
+     * @return returnedMessage
+     */
+
+    public function sendChecklist($business_connection_id, $chat_id, $checklist, array $options = [])
+    {
+        $data = compact('business_connection_id', 'chat_id', 'checklist') + $options;
+
+        return returnedMessage::create($this->call('sendChecklist', $data));
     }
 
     /**
      * @return returnedMessage
      */
-    public function sendContact($chat_id, string $phone_number, string $first_name, ?string $last_name = null, ?string $vcard = null, bool $disable_notification = false, bool $protect_content = false, ?int $reply_to_message_id = null, ?array $reply_markup = null, $allow_sending_without_reply = true)
+
+    public function sendDice($chat_id, $emoji, array $options = [])
     {
-        return $this->bot('sendContact', compact('chat_id', 'phone_number', 'first_name', 'last_name', 'vcard', 'disable_notification', 'protect_content', 'reply_to_message_id', 'reply_markup', 'allow_sending_without_reply'));
+        $data = compact('chat_id', 'emoji') + $options;
+
+        return returnedMessage::create($this->call('sendDice', $data));
     }
 
+    /**
+     * @return returned
+     */
 
-    public function sendPoll($chat_id, $question, $options, ?string $question_parse_mode = null, $question_entities = null, $is_anonymous = true, $type = "regular", $allows_multiple_answers = false, $correct_option_id = null, $explanation = null, ?string $explanation_parse_mode = null, $explanation_entities = null, $open_period = null, $close_date = null, $is_closed = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null): returnedMessage
+    public function sendMessageDraft($chat_id, $draft_id, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendPoll', compact('chat_id', 'question', 'question_parse_mode', 'question_entities', 'options', 'is_anonymous', 'type', 'allows_multiple_answers', 'correct_option_id', 'explanation', 'explanation_parse_mode', 'explanation_entities', 'open_period', 'close_date', 'is_closed', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
+        $data = compact('chat_id', 'draft_id') + $options;
+
+        return returned::create($this->call('sendMessageDraft', $data));
     }
 
+    /**
+     * @return returned
+     */
 
-    public function sendDice($chat_id, $emoji = "🎲", $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null): returnedMessage
+    public function sendChatAction($chat_id, $action, array $options = [])
     {
-        return returnedMessage::create($this->bot('sendDice', compact('chat_id', 'emoji', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
+        $data = compact('chat_id', 'action') + $options;
+
+        return returned::create($this->call('sendChatAction', $data));
     }
 
+    /**
+     * @return returned
+     */
 
-    public function sendChatAction($chat_id, $action, $message_thread_id = null, $business_connection_id = null): returned
+    public function setMessageReaction($chat_id, $message_id, array $options = [])
     {
-        return returned::create($this->bot('sendChatAction', compact('chat_id', 'action', 'message_thread_id', 'business_connection_id')));
+        $data = compact('chat_id', 'message_id') + $options;
+
+        return returned::create($this->call('setMessageReaction', $data));
     }
 
-    public function setMessageReaction($chat_id, $message_id, $reaction = null, $is_big = null): returned
+    /**
+     * @return returnedUserProfilePhotos
+     */
+
+    public function getUserProfilePhotos($user_id, array $options = [])
     {
-        return returned::create($this->bot('setMessageReaction', compact('chat_id', 'message_id', 'reaction', 'is_big')));
+        $data = compact('user_id') + $options;
+
+        return returnedUserProfilePhotos::create($this->call('getUserProfilePhotos', $data));
     }
 
+    /**
+     * @return returnedUserProfileAudios
+     */
 
-    public function getUserProfilePhotos($user_id, $offset = null, $limit = null): returnedUserProfilePhotos
+    public function getUserProfileAudios($user_id, array $options = [])
     {
-        return returnedUserProfilePhotos::create($this->bot('getUserProfilePhotos', compact('user_id', 'offset', 'limit')));
+        $data = compact('user_id') + $options;
+
+        return returnedUserProfileAudios::create($this->call('getUserProfileAudios', $data));
     }
 
-    public function setUserEmojiStatus($user_id, $emoji_status_custom_emoji_id = null, $emoji_status_expiration_date = null): returned
+    /**
+     * @return returnedUserProfileAudios
+     */
+
+    public function setUserEmojiStatus($user_id, array $options = [])
     {
-        return returned::create($this->bot('setUserEmojiStatus', compact('user_id', 'emoji_status_custom_emoji_id', 'emoji_status_expiration_date')));
+        $data = compact('user_id') + $options;
+
+        return returned::create($this->call('setUserEmojiStatus', $data));
     }
 
-    public function getFile(string $file_id): returnedFile
+    /**
+     * @return returnedFile
+     */
+
+    public function getFile($file_id, array $options = [])
     {
-        return returnedFile::create($this->bot('getFile', compact('file_id')));
+        $data = compact('file_id') + $options;
+
+        return returnedFile::create($this->call('getFile', $data));
     }
 
-    public function banChatMember($chat_id, $user_id, $until_date = null, $revoke_messages = true): returned
+    /**
+     * @return returned
+     */
+
+    public function banChatMember($chat_id, $user_id, array $options = [])
     {
-        return returned::create($this->bot('banChatMember', compact('chat_id', 'user_id', 'until_date', 'revoke_messages')));
+        $data = compact('chat_id', 'user_id') + $options;
+
+        return returned::create($this->call('banChatMember', $data));
     }
 
-    public function unbanChatMember($chat_id, $user_id, $only_if_banned = false): returned
+    /**
+     * @return returned
+     */
+
+    public function unbanChatMember($chat_id, $user_id, array $options = [])
     {
-        return returned::create($this->bot('unbanChatMember', compact('chat_id', 'user_id', 'only_if_banned')));
+        $data = compact('chat_id', 'user_id') + $options;
+
+        return returned::create($this->call('unbanChatMember', $data));
     }
 
+    /**
+     * @return returned
+     */
 
-    public function restrictChatMember($chat_id, $user_id, $permissions, $use_independent_chat_permissions = false, $until_date = null): returned
+    public function restrictChatMember($chat_id, $user_id, $permissions, array $options = [])
     {
         $permissions = json_encode($permissions);
-        return returned::create($this->bot('restrictChatMember', compact('chat_id', 'user_id', 'permissions', 'use_independent_chat_permissions', 'until_date')));
+        $data = compact('chat_id', 'user_id', 'permissions') + $options;
+        return returned::create($this->call('restrictChatMember', $data));
     }
 
-    public function promoteChatMember($chat_id, $user_id, $is_anonymous = null, $can_manage_chat = null, $can_delete_messages = null, $can_manage_video_chats = null, $can_restrict_members = null, $can_promote_members = null, $can_change_info = null, $can_invite_users = null, $can_post_stories = null, $can_edit_stories = null, $can_delete_stories = null, $can_post_messages = null, $can_edit_messages = null, $can_pin_messages = null, $can_manage_topics = null): returned
+    /**
+     * @return returned
+     */
+
+    public function promoteChatMember($chat_id, $user_id, array $options = [])
     {
-        return returned::create($this->bot('promoteChatMember', compact('chat_id', 'user_id', 'is_anonymous', 'can_manage_chat', 'can_delete_messages', 'can_manage_video_chats', 'can_restrict_members', 'can_promote_members', 'can_change_info', 'can_invite_users', 'can_post_stories', 'can_edit_stories', 'can_delete_stories', 'can_post_messages', 'can_edit_messages', 'can_pin_messages', 'can_manage_topics')));
+        $data = compact('chat_id', 'user_id') + $options;
+
+        return returned::create($this->call('promoteChatMember', $data));
     }
 
-    public function setChatAdministratorCustomTitle($chat_id, $user_id, $custom_title): returned
+    /**
+     * @return returned
+     */
+
+    public function setChatAdministratorCustomTitle($chat_id, $user_id, $custom_title, array $options = [])
     {
-        return returned::create($this->bot('setChatAdministratorCustomTitle', compact('chat_id', 'user_id', 'custom_title')));
+        $data = compact('chat_id', 'user_id', 'custom_title') + $options;
+
+        return returned::create($this->call('setChatAdministratorCustomTitle', $data));
     }
 
-    public function banChatSenderChat($chat_id, $sender_chat_id): returned
+    /**
+     * @return returned
+     */
+
+    public function setChatMemberTag($chat_id, $user_id, $tag, array $options = [])
     {
-        return returned::create($this->bot('banChatSenderChat', compact('chat_id', 'sender_chat_id')));
+        $data = compact('chat_id', 'user_id', 'tag') + $options;
+
+        return returned::create($this->call('setChatMemberTag', $data));
     }
 
-    public function unbanChatSenderChat($chat_id, $sender_chat_id): returned
+    /**
+     * @return returned
+     */
+
+    public function banChatSenderChat($chat_id, $sender_chat_id, array $options = [])
     {
-        return returned::create($this->bot('unbanChatSenderChat', compact('chat_id', 'sender_chat_id')));
+        $data = compact('chat_id', 'sender_chat_id') + $options;
+
+        return returned::create($this->call('banChatSenderChat', $data));
     }
 
-    public function setChatPermissions($chat_id, $permissions, $use_independent_chat_permissions = null): returned
+    /**
+     * @return returned
+     */
+
+    public function unbanChatSenderChat($chat_id, $sender_chat_id, array $options = [])
+    {
+        $data = compact('chat_id', 'sender_chat_id') + $options;
+
+        return returned::create($this->call('unbanChatSenderChat', $data));
+    }
+
+    /**
+     * @return returned
+     */
+
+    public function setChatPermissions($chat_id, $permissions, array $options = [])
     {
         $permissions = json_encode($permissions);
 
-        return returned::create($this->bot('setChatPermissions', compact('chat_id', 'permissions', 'use_independent_chat_permissions')));
+        $data = compact('chat_id', 'permissions') + $options;
+
+        return returned::create($this->call('setChatPermissions', $data));
     }
 
+    /**
+     * @return returnedString
+     */
     public function exportChatInviteLink($chat_id): returnedString
     {
-        return returnedString::create($this->bot('exportChatInviteLink', compact('chat_id')));
+        return returnedString::create($this->call('exportChatInviteLink', compact('chat_id')));
     }
 
-    public function createChatInviteLink($chat_id, $name = null, $expire_date = null, $member_limit = null, $creates_join_request = null): returnedChatInviteLink
+    /**
+     * @return returnedChatInviteLink
+     */
+
+    public function createChatInviteLink($chat_id, array $options = [])
     {
-        return returnedChatInviteLink::create($this->bot('createChatInviteLink', compact('chat_id', 'name', 'expire_date', 'member_limit', 'creates_join_request')));
+
+        $data = compact('chat_id') + $options;
+
+        return returnedChatInviteLink::create($this->call('createChatInviteLink', $data));
     }
 
-    public function editChatInviteLink($chat_id, $invite_link, $name = null, $expire_date = null, $member_limit = null, $creates_join_request = null): returnedChatInviteLink
+    /**
+     * @return returnedChatInviteLink
+     */
+
+    public function editChatInviteLink($chat_id, $invite_link, array $options = [])
     {
-        return returnedChatInviteLink::create($this->bot('editChatInviteLink', compact('chat_id', 'invite_link', 'name', 'expire_date', 'member_limit', 'creates_join_request')));
+
+        $data = compact('chat_id', 'invite_link') + $options;
+
+        return returnedChatInviteLink::create($this->call('editChatInviteLink', $data));
     }
 
-    public function createChatSubscriptionInviteLink($chat_id, $name, $subscription_period, $subscription_price): returnedChatInviteLink
+    /**
+     * @return returnedChatInviteLink
+     */
+
+    public function createChatSubscriptionInviteLink($chat_id, $subscription_period, $subscription_price, array $options = [])
     {
-        return returnedChatInviteLink::create($this->bot('createChatSubscriptionInviteLink', compact('chat_id', 'name', 'subscription_period', 'subscription_price')));
+
+        $data = compact('chat_id', 'subscription_period', 'subscription_price') + $options;
+
+        return returnedChatInviteLink::create($this->call('createChatSubscriptionInviteLink', $data));
     }
 
-    public function editChatSubscriptionInviteLink($chat_id, $invite_link, $name = null): returnedChatInviteLink
+    /**
+     * @return returnedChatInviteLink
+     */
+
+    public function editChatSubscriptionInviteLink($chat_id, $invite_link, array $options = [])
     {
-        return returnedChatInviteLink::create($this->bot('editChatSubscriptionInviteLink', compact('chat_id', 'invite_link', 'name')));
+
+        $data = compact('chat_id', 'invite_link') + $options;
+
+        return returnedChatInviteLink::create($this->call('editChatSubscriptionInviteLink', $data));
     }
 
-    public function revokeChatInviteLink($chat_id, $invite_link): returnedChatInviteLink
+
+    /**
+     * @return returnedChatInviteLink
+     */
+
+    public function revokeChatInviteLink($chat_id, $invite_link, array $options = [])
     {
-        return returnedChatInviteLink::create($this->bot('revokeChatInviteLink', compact('chat_id', 'invite_link')));
+
+        $data = compact('chat_id', 'invite_link') + $options;
+
+        return returnedChatInviteLink::create($this->call('revokeChatInviteLink', $data));
     }
 
-    public function approveChatJoinRequest($chat_id, $user_id): returned
+    /**
+     * @return returned
+     */
+
+    public function approveChatJoinRequest($chat_id, $user_id, array $options = [])
     {
-        return returned::create($this->bot('approveChatJoinRequest', compact('chat_id', 'user_id')));
+
+        $data = compact('chat_id', 'user_id') + $options;
+
+        return returned::create($this->call('approveChatJoinRequest', $data));
     }
 
+    /**
+     * @return returned
+     */
 
-    public function declineChatJoinRequest($chat_id, $user_id): returned
+    public function declineChatJoinRequest($chat_id, $user_id, array $options = [])
     {
-        return returned::create($this->bot('declineChatJoinRequest', compact('chat_id', 'user_id')));
+
+        $data = compact('chat_id', 'user_id') + $options;
+
+        return returned::create($this->call('declineChatJoinRequest', $data));
     }
 
-    public function setChatPhoto($chat_id, $photo): returned
+    /**
+     * @return returned
+     */
+
+    public function setChatPhoto($chat_id, $photo, array $options = [])
     {
-        return returned::create($this->bot('setChatPhoto', compact('chat_id', 'photo')));
+
+        $data = compact('chat_id', 'photo') + $options;
+
+        return returned::create($this->call('setChatPhoto', $data));
     }
 
-    public function deleteChatPhoto($chat_id): returned
+    /**
+     * @return returned
+     */
+
+    public function deleteChatPhoto($chat_id, array $options = [])
     {
-        return returned::create($this->bot('deleteChatPhoto', compact('chat_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('deleteChatPhoto', $data));
     }
 
-    public function setChatTitle($chat_id, $title): returned
+    /**
+     * @return returned
+     */
+
+    public function setChatTitle($chat_id, $title, array $options = [])
     {
-        return returned::create($this->bot('setChatTitle', compact('chat_id', 'title')));
+
+        $data = compact('chat_id', 'title') + $options;
+
+        return returned::create($this->call('setChatTitle', $data));
     }
 
-    public function setChatDescription($chat_id, string $description): returned
+    /**
+     * @return returned
+     */
+
+    public function setChatDescription($chat_id, $description, array $options = [])
     {
-        return returned::create($this->bot('setChatDescription', compact('chat_id', 'description')));
+
+        $data = compact('chat_id', 'description') + $options;
+
+        return returned::create($this->call('setChatDescription', $data));
     }
 
-    public function pinChatMessage($chat_id, int $message_id, $business_connection_id = null, bool $disable_notification = false): returned
+    /**
+     * @return returned
+     */
+
+    public function pinChatMessage($chat_id, int $message_id, array $options = [])
     {
-        return returned::create($this->bot('pinChatMessage', compact('chat_id', 'message_id', 'business_connection_id', 'disable_notification')));
+
+        $data = compact('chat_id', 'message_id') + $options;
+
+        return returned::create($this->call('pinChatMessage', $data));
     }
 
-    public function unpinChatMessage($chat_id, $message_id = null, $business_connection_id = null): returned
+    /**
+     * @return returned
+     */
+
+    public function unpinChatMessage($chat_id, array $options = [])
     {
-        return returned::create($this->bot('unpinChatMessage', compact('chat_id', 'message_id', 'business_connection_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('unpinChatMessage', $data));
     }
 
-    public function unpinAllChatMessages($chat_id): returned
+    /**
+     * @return returned
+     */
+
+    public function unpinAllChatMessages($chat_id, array $options = [])
     {
-        return returned::create($this->bot('unpinAllChatMessages', compact('chat_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('unpinAllChatMessages', $data));
     }
 
+    /**
+     * @return returned
+     */
 
-    public function LeaveChat($chat_id): returned
+    public function leaveChat($chat_id, array $options = [])
     {
-        return returned::create($this->bot('LeaveChat', compact('chat_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('leaveChat', $data));
     }
+
+
+    /**
+     * @return returnedChat
+     */
 
 
     public function getChat($chat_id): returnedChat
     {
-        return returnedChat::create($this->bot('getChat', compact('chat_id')));
+        return returnedChat::create($this->call('getChat', compact('chat_id')));
     }
 
-    public function getChatAdministrators($chat_id): returnedChatMember
+    /**
+     * @return returnedChatMember
+     */
+    public function getChatAdministrators($chat_id, array $options = [])
     {
-        return returnedChatMember::create($this->bot('getChatAdministrators', compact('chat_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('getChatAdministrators', $data));
     }
 
-
-    public function getChatMembersCount($chat_id): returnedInt
+    /**
+     * @return returnedInt
+     */
+    public function getChatMembersCount($chat_id, array $options = [])
     {
-        return returnedInt::create($this->bot('getChatMembersCount', compact('chat_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returnedInt::create($this->call('getChatMembersCount', $data));
     }
 
-
-    public function getChatMember($chat_id, int $user_id): returnedChatMember
+    /**
+     * @return returnedChatMember
+     */
+    public function getChatMember($chat_id, $user_id, array $options = [])
     {
-        return returnedChatMember::create($this->bot('getChatMember', compact('chat_id', 'user_id')));
+
+        $data = compact('chat_id', 'user_id') + $options;
+
+        return returnedChatMember::create($this->call('getChatMember', $data));
     }
 
-
-    public function setChatStickerSet($chat_id, string $sticker_set_name): returned
+    /**
+     * @return returnedMessage
+     */
+    public function getUserPersonalChatMessages($user_id, $limit, array $options = [])
     {
-        return returned::create($this->bot('setChatStickerSet', compact('chat_id', 'sticker_set_name')));
+
+        $data = compact('limit', 'user_id') + $options;
+
+        return returnedMessage::create($this->call('getUserPersonalChatMessages', $data));
     }
 
-
-    public function deleteChatStickerSet($chat_id): returned
+    /**
+     * @return returned
+     */
+    public function setChatStickerSet($chat_id, string $sticker_set_name, array $options = [])
     {
-        return returned::create($this->bot('deleteChatStickerSet', compact('chat_id')));
+
+        $data = compact('chat_id', 'sticker_set_name') + $options;
+
+        return returned::create($this->call('setChatStickerSet', $data));
     }
 
-    public function getForumTopicIconStickers($chat_id): returnedArrayOfSticker
+    /**
+     * @return returned
+     */
+    public function deleteChatStickerSet($chat_id, array $options = [])
     {
-        return returnedArrayOfSticker::create($this->bot('getForumTopicIconStickers'));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('deleteChatStickerSet', $data));
     }
 
-    public function createForumTopic($chat_id, $name, $icon_color = null, $icon_custom_emoji_id = null): returnedForumTopic
+    /**
+     * @return returnedArrayOfSticker
+     */
+    public function getForumTopicIconStickers($chat_id, array $options = [])
     {
-        return returnedForumTopic::create($this->bot('createForumTopic', compact('chat_id', 'name', 'icon_color', 'icon_custom_emoji_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returnedArrayOfSticker::create($this->call('getForumTopicIconStickers', $data));
     }
 
-    public function editForumTopic($chat_id, $message_thread_id, $name = null, $icon_custom_emoji_id = null): returned
+    /**
+     * @return returnedForumTopic
+     */
+    public function createForumTopic($chat_id, $name, array $options = [])
     {
-        return returned::create($this->bot('editForumTopic', compact('chat_id', 'message_thread_id', 'name', 'icon_custom_emoji_id')));
+
+        $data = compact('chat_id', 'name') + $options;
+
+        return returnedForumTopic::create($this->call('createForumTopic', $data));
     }
 
-    public function closeForumTopic($chat_id, $message_thread_id): returned
+    /**
+     * @return returned
+     */
+    public function editForumTopic($chat_id, $message_thread_id, array $options = [])
     {
-        return returned::create($this->bot('closeForumTopic', compact('chat_id', 'message_thread_id')));
+
+        $data = compact('chat_id', 'message_thread_id') + $options;
+
+        return returned::create($this->call('editForumTopic', $data));
     }
 
-    public function reopenForumTopic($chat_id, $message_thread_id): returned
+    /**
+     * @return returned
+     */
+    public function closeForumTopic($chat_id, $message_thread_id, array $options = [])
     {
-        return returned::create($this->bot('reopenForumTopic', compact('chat_id', 'message_thread_id')));
+
+        $data = compact('chat_id', 'message_thread_id') + $options;
+
+        return returned::create($this->call('closeForumTopic', $data));
     }
 
-    public function deleteForumTopic($chat_id, $message_thread_id): returned
+    /**
+     * @return returned
+     */
+    public function reopenForumTopic($chat_id, $message_thread_id, array $options = [])
     {
-        return returned::create($this->bot('deleteForumTopic', compact('chat_id', 'message_thread_id')));
+
+        $data = compact('chat_id', 'message_thread_id') + $options;
+
+        return returned::create($this->call('reopenForumTopic', $data));
     }
 
-    public function unpinAllForumTopicMessages($chat_id, $message_thread_id): returned
+    /**
+     * @return returned
+     */
+    public function deleteForumTopic($chat_id, $message_thread_id, array $options = [])
     {
-        return returned::create($this->bot('unpinAllForumTopicMessages', compact('chat_id', 'message_thread_id')));
+
+        $data = compact('chat_id', 'message_thread_id') + $options;
+
+        return returned::create($this->call('deleteForumTopic', $data));
     }
 
-    public function editGeneralForumTopic($chat_id, $name): returned
+    /**
+     * @return returned
+     */
+    public function unpinAllForumTopicMessages($chat_id, $message_thread_id, array $options = []): returned
     {
-        return returned::create($this->bot('editGeneralForumTopic', compact('chat_id', 'name')));
+
+        $data = compact('chat_id', 'message_thread_id') + $options;
+
+        return returned::create($this->call('unpinAllForumTopicMessages', $data));
     }
 
-    public function closeGeneralForumTopic($chat_id): returned
+    /**
+     * @return returned
+     */
+    public function editGeneralForumTopic($chat_id, $name, array $options = []): returned
     {
-        return returned::create($this->bot('closeGeneralForumTopic', compact('chat_id')));
+
+        $data = compact('chat_id', 'name') + $options;
+
+        return returned::create($this->call('editGeneralForumTopic', $data));
     }
 
-    public function reopenGeneralForumTopic($chat_id): returned
+    /**
+     * @return returned
+     */
+    public function closeGeneralForumTopic($chat_id, array $options = []): returned
     {
-        return returned::create($this->bot('reopenGeneralForumTopic', compact('chat_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('closeGeneralForumTopic', $data));
     }
 
-    public function hideGeneralForumTopic($chat_id): returned
+    /**
+     * @return returned
+     */
+    public function reopenGeneralForumTopic($chat_id, array $options = []): returned
     {
-        return returned::create($this->bot('hideGeneralForumTopic', compact('chat_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('reopenGeneralForumTopic', $data));
     }
 
-    public function unhideGeneralForumTopic($chat_id): returned
+    /**
+     * @return returned
+     */
+    public function hideGeneralForumTopic($chat_id, array $options = []): returned
     {
-        return returned::create($this->bot('unhideGeneralForumTopic', compact('chat_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('hideGeneralForumTopic', $data));
     }
 
-    public function unpinAllGeneralForumTopicMessages($chat_id): returned
+    /**
+     * @return returned
+     */
+    public function unhideGeneralForumTopic($chat_id, array $options = []): returned
     {
-        return returned::create($this->bot('unpinAllGeneralForumTopicMessages', compact('chat_id')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('unhideGeneralForumTopic', $data));
     }
 
-    public function answerCallbackQuery($callback_query_id, string $text, bool $show_alert = false, ?string $url = null, ?int $cache_time = 1): returned
+    /**
+     * @return returned
+     */
+    public function unpinAllGeneralForumTopicMessages($chat_id, array $options = []): returned
     {
-        return returned::create($this->bot('answerCallbackQuery', compact('callback_query_id', 'text', 'show_alert', 'url', 'cache_time')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('unpinAllGeneralForumTopicMessages', $data));
     }
 
-    public function getUserChatBoosts($chat_id, $user_id): returnedUserChatBoosts
+    /**
+     * @return returned
+     */
+    public function answerCallbackQuery($callback_query_id, $text, array $options = []): returned
     {
-        return returnedUserChatBoosts::create($this->bot('getUserChatBoosts', compact('chat_id', 'user_id')));
+
+        $data = compact('callback_query_id', 'text') + $options;
+
+        return returned::create($this->call('answerCallbackQuery', $data));
     }
 
-    public function getBusinessConnection($business_connection_id): returnedBusinessConnection
+    /**
+     * @return returnedSentGuestMessage
+     */
+    public function answerGuestQuery($callback_query_id, $text, array $options = []): returnedSentGuestMessage
     {
-        return returnedBusinessConnection::create($this->bot('getBusinessConnection', compact('business_connection_id')));
+
+        $data = compact('callback_query_id', 'text') + $options;
+
+        return returnedSentGuestMessage::create($this->call('answerGuestQuery', $data));
     }
 
-    public function setMyCommands($commands, $scope = null, $language_code = null): returned
+    /**
+     * @return returnedUserChatBoosts
+     */
+    public function getUserChatBoosts($chat_id, $user_id, array $options = []): returnedUserChatBoosts
     {
-        return returned::create($this->bot('setMyCommands', compact('commands', 'scope', 'language_code')));
+
+        $data = compact('chat_id', 'user_id') + $options;
+
+        return returnedUserChatBoosts::create($this->call('getUserChatBoosts', $data));
     }
 
-    public function deleteMyCommands($scope = null, $language_code = null): returned
+    /**
+     * @return returnedBusinessConnection
+     */
+    public function getBusinessConnection($business_connection_id, array $options = []): returnedBusinessConnection
     {
-        return returned::create($this->bot('deleteMyCommands', compact('scope', 'language_code')));
+
+        $data = compact('business_connection_id') + $options;
+
+        return returnedBusinessConnection::create($this->call('getBusinessConnection', $data));
     }
 
-    public function getMyCommands($scope = null, $language_code = null): returnedArrayBotCommand
+    /**
+     * @return returnedString
+     */
+    public function getManagedBotToken($user_id, array $options = []): returnedString
     {
-        return returnedArrayBotCommand::create($this->bot('getMyCommands', compact('scope', 'language_code')));
+
+        $data = compact('user_id') + $options;
+
+        return returnedString::create($this->call('getManagedBotToken', $data));
     }
 
-    public function setMyName($name = null, $language_code = null): returned
+    /**
+     * @return returnedBotAccessSettings
+     */
+    public function getManagedBotAccessSettings($user_id, array $options = []): returnedBotAccessSettings
     {
-        return returned::create($this->bot('setMyName', compact('name', 'language_code')));
+
+        $data = compact('user_id') + $options;
+
+        return returnedBotAccessSettings::create($this->call('getManagedBotAccessSettings', $data));
     }
 
-    public function getMyName($language_code = null): returnedBotName
+    /**
+     * @return returned
+     */
+    public function replaceManagedBotToken($user_id, array $options = []): returned
     {
-        return returnedBotName::create($this->bot('getMyName', compact('language_code')));
+
+        $data = compact('user_id') + $options;
+
+        return returned::create($this->call('replaceManagedBotToken', $data));
     }
 
-    public function setMyDescription($description, $language_code = null): returned
+    /**
+     * @return returned
+     */
+    public function setManagedBotAccessSettings($user_id, $is_access_restricted, array $options = []): returned
     {
-        return returned::create($this->bot('setMyDescription', compact('description', 'language_code')));
+
+        $data = compact('user_id', 'is_access_restricted') + $options;
+
+        return returned::create($this->call('setManagedBotAccessSettings', $data));
     }
 
-    public function getMyDescription($language_code = null): returnedBotDescription
+    /**
+     * @return returned
+     */
+    public function setMyCommands($commands, array $options = []): returned
     {
-        return returnedBotDescription::create($this->bot('getMyDescription', compact('language_code')));
+
+        $data = compact('commands') + $options;
+
+        return returned::create($this->call('setMyCommands', $data));
     }
 
-    public function setMyShortDescription($short_description, $language_code = null): returnedBotShortDescription
+    /**
+     * @return returned
+     */
+    public function deleteMyCommands(array $options = []): returned
     {
-        return returnedBotShortDescription::create($this->bot('setMyShortDescription', compact('short_description', 'language_code')));
+
+        $data = $options;
+
+        return returned::create($this->call('deleteMyCommands', $data));
     }
 
-    public function setChatMenuButton($chat_id = null, $menu_button = null): returned
+    /**
+     * @return returnedArrayBotCommand
+     */
+    public function getMyCommands(array $options = []): returnedArrayBotCommand
     {
-        return returned::create($this->bot('setChatMenuButton', compact('chat_id', 'menu_button')));
+
+        $data = $options;
+
+        return returnedArrayBotCommand::create($this->call('getMyCommands', $data));
     }
 
-    public function getChatMenuButton($chat_id = null): returnedMenuButton
+
+    /**
+     * @return returned
+     */
+    public function setMyName($name = null, $language_code = null, array $options = []): returned
     {
-        return returnedMenuButton::create($this->bot('getChatMenuButton', compact('chat_id')));
+
+        $data = compact('name', 'language_code') + $options;
+
+        return returned::create($this->call('setMyName', $data));
     }
 
-
-    public function setMyDefaultAdministratorRights($rights = null, $for_channels = null): returned
+    /**
+     * @return returnedBotName
+     */
+    public function getMyName($language_code = null, array $options = []): returnedBotName
     {
-        return returned::create($this->bot('setMyDefaultAdministratorRights', compact('rights', 'for_channels')));
+
+        $data = compact('language_code') + $options;
+
+        return returnedBotName::create($this->call('getMyName', $data));
     }
 
-
-    public function getMyDefaultAdministratorRights($for_channels = null): returnedChatAdministratorRights
+    /**
+     * @return returned
+     */
+    public function setMyDescription($description, array $options = []): returned
     {
-        return returnedChatAdministratorRights::create($this->bot('getMyDefaultAdministratorRights', compact('for_channels')));
+
+        $data = compact('description') + $options;
+
+        return returned::create($this->call('setMyDescription', $data));
     }
 
-    public function editMessageText($chat_id, $message_id, $text, $parse_mode = null, $reply_markup = null, $inline_message_id = null, $entities = null, $link_preview_options = null): returnedMessage
+    /**
+     * @return returnedBotDescription
+     */
+    public function getMyDescription($language_code = null, array $options = []): returnedBotDescription
     {
-        return returnedMessage::create($this->bot('editMessageText', compact('chat_id', 'message_id', 'inline_message_id', 'text', 'parse_mode', 'entities', 'link_preview_options', 'reply_markup')));
+
+        $data = compact('language_code') + $options;
+
+        return returnedBotDescription::create($this->call('getMyDescription', $data));
     }
 
-    public function editMessageCaption($chat_id = null, $message_id = null, $inline_message_id = null, $caption = null, $parse_mode = null, $caption_entities = null, $show_caption_above_media = null, $reply_markup = null): returnedMessage
+    /**
+     * @return returnedBotShortDescription
+     */
+    public function setMyShortDescription($short_description, $language_code = null, array $options = []): returnedBotShortDescription
     {
-        return returnedMessage::create($this->bot('editMessageCaption', compact('chat_id', 'message_id', 'inline_message_id', 'caption', 'parse_mode', 'caption_entities', 'show_caption_above_media', 'reply_markup')));
+
+        $data = compact('short_description') + $options;
+
+        return returnedBotShortDescription::create($this->call('setMyShortDescription', $data));
     }
 
-
-    public function editMessageMedia($chat_id = null, $message_id = null, $inline_message_id = null, $media = null, $reply_markup = null): returnedMessage
+    /**
+     * @return returned
+     */
+    public function setMyProfilePhoto($photo, array $options = []): returned
     {
-        return returnedMessage::create($this->bot('editMessageMedia', compact('chat_id', 'message_id', 'inline_message_id', 'media', 'reply_markup')));
+
+        $data = compact('photo') + $options;
+
+        return returned::create($this->call('setMyProfilePhoto', $data));
     }
 
-    public function editMessageLiveLocation($chat_id = null, $message_id = null, $inline_message_id = null, $latitude = null, $longitude = null, $live_period = null, $horizontal_accuracy = null, $heading = null, $proximity_alert_radius = null, $reply_markup = null): returnedMessage
+    /**
+     * @return returned
+     */
+    public function removeMyProfilePhoto($options): returned
     {
-        return returnedMessage::create($this->bot('editMessageLiveLocation', compact('chat_id', 'message_id', 'inline_message_id', 'latitude', 'longitude', 'live_period', 'horizontal_accuracy', 'heading', 'proximity_alert_radius', 'reply_markup')));
+
+        $data = $options;
+
+        return returned::create($this->call('removeMyProfilePhoto', $data));
     }
 
-    public function stopMessageLiveLocation($chat_id = null, $message_id = null, $inline_message_id = null, $reply_markup = null): returnedMessage
+
+    /**
+     * @return returned
+     */
+    public function setChatMenuButton(array $options = []): returned
     {
-        return returnedMessage::create($this->bot('stopMessageLiveLocation', compact('chat_id', 'message_id', 'inline_message_id', 'reply_markup')));
+
+        $data = $options;
+
+        return returned::create($this->call('setChatMenuButton', $data));
     }
 
-    public function editMessageReplyMarkup($chat_id = null, $message_id = null, $inline_message_id = null, $reply_markup = null): returnedMessage
+    /**
+     * @return returnedMenuButton
+     */
+    public function getChatMenuButton(array $options = []): returnedMenuButton
     {
-        return returnedMessage::create($this->bot('editMessageReplyMarkup', compact('chat_id', 'message_id', 'inline_message_id', 'reply_markup')));
+
+        $data = $options;
+
+        return returnedMenuButton::create($this->call('getChatMenuButton', $data));
     }
 
-    public function stopPoll($chat_id, $message_id, $reply_markup = null): returnedPoll
+    /**
+     * @return returned
+     */
+    public function setMyDefaultAdministratorRights(array $options = []): returned
     {
-        return returnedPoll::create($this->bot('stopPoll', compact('chat_id', 'message_id', 'reply_markup')));
+
+        $data = $options;
+
+        return returned::create($this->call('setMyDefaultAdministratorRights', $data));
     }
+
+
+    /**
+     * @return returnedChatAdministratorRights
+     */
+    public function getMyDefaultAdministratorRights(array $options = []): returnedChatAdministratorRights
+    {
+
+        $data = $options;
+
+        return returnedChatAdministratorRights::create($this->call('getMyDefaultAdministratorRights', $data));
+    }
+
+
+    /**
+     * @return returnedGifts
+     */
+    public function getAvailableGifts($name, array $options = []): returnedGifts
+    {
+
+        $data = compact('name') + $options;
+
+        return returnedGifts::create($this->call('getAvailableGifts', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function sendGift($gift_id, array $options = []): returned
+    {
+
+        $data = compact('gift_id') + $options;
+
+        return returned::create($this->call('sendGift', $data));
+    }
+
+
+    /**
+     * @return returned
+     */
+    public function giftPremiumSubscription($user_id, $month_count, $star_count, array $options = []): returned
+    {
+
+        $data = compact('user_id', 'month_count', 'star_count') + $options;
+
+        return returned::create($this->call('giftPremiumSubscription', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function verifyUser($user_id, array $options = []): returned
+    {
+
+        $data = compact('user_id') + $options;
+
+        return returned::create($this->call('verifyUser', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function verifyChat($chat_id, array $options = []): returned
+    {
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('verifyChat', $data));
+    }
+
+
+    /**
+     * @return returned
+     */
+    public function removeUserVerification($user_id, array $options = []): returned
+    {
+
+        $data = compact('user_id') + $options;
+
+        return returned::create($this->call('removeUserVerification', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function removeChatVerification($chat_id, array $options = []): returned
+    {
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('removeChatVerification', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function readBusinessMessage($business_connection_id, $chat_id, $message_id, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'chat_id', 'message_id') + $options;
+
+        return returned::create($this->call('readBusinessMessage', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function deleteBusinessMessages($business_connection_id, $message_ids, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'message_ids') + $options;
+
+        return returned::create($this->call('deleteBusinessMessages', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function setBusinessAccountName($business_connection_id, $first_name, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'first_name') + $options;
+
+        return returned::create($this->call('setBusinessAccountName', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function setBusinessAccountUsername($business_connection_id, $username, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'username') + $options;
+
+        return returned::create($this->call('setBusinessAccountUsername', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function setBusinessAccountBio($business_connection_id, $bio, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'bio') + $options;
+
+        return returned::create($this->call('setBusinessAccountBio', $data));
+    }
+
+
+    /**
+     * @return returned
+     */
+    public function setBusinessAccountProfilePhoto($business_connection_id, $photo, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'photo') + $options;
+
+        return returned::create($this->call('setBusinessAccountProfilePhoto', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function removeBusinessAccountProfilePhoto($business_connection_id, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id') + $options;
+
+        return returned::create($this->call('removeBusinessAccountProfilePhoto', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function setBusinessAccountGiftSettings($business_connection_id, $show_gift_button, $accepted_gift_types, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'show_gift_button', 'accepted_gift_types') + $options;
+
+        return returned::create($this->call('setBusinessAccountGiftSettings', $data));
+    }
+
+    /**
+     * /**
+     * @return returnedStarAmount
+     */
+    public function getBusinessAccountStarBalance($business_connection_id, array $options = []): returnedStarAmount
+    {
+
+        $data = compact('business_connection_id') + $options;
+
+        return returnedStarAmount::create($this->call('getBusinessAccountStarBalance', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function transferBusinessAccountStars($business_connection_id, $star_count, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'star_count') + $options;
+
+        return returned::create($this->call('transferBusinessAccountStars', $data));
+    }
+
+    /**
+     * @return returnedOwnedGifts
+     */
+    public function getBusinessAccountGifts($business_connection_id, array $options = []): returnedOwnedGifts
+    {
+
+        $data = compact('business_connection_id') + $options;
+
+        return returnedOwnedGifts::create($this->call('getBusinessAccountGifts', $data));
+    }
+
+    /**
+     * @return returnedOwnedGifts
+     */
+    public function getUserGifts($user_id, array $options = []): returnedOwnedGifts
+    {
+
+        $data = compact('user_id') + $options;
+
+        return returnedOwnedGifts::create($this->call('getUserGifts', $data));
+    }
+
+    /**
+     * @return returnedOwnedGifts
+     */
+    public function getChatGifts($chat_id, array $options = []): returnedOwnedGifts
+    {
+
+        $data = compact('chat_id') + $options;
+
+        return returnedOwnedGifts::create($this->call('getChatGifts', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function convertGiftToStars($business_connection_id, $owned_gift_id, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'owned_gift_id') + $options;
+
+        return returned::create($this->call('convertGiftToStars', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function upgradeGift($business_connection_id, $owned_gift_id, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'owned_gift_id') + $options;
+
+        return returned::create($this->call('upgradeGift', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function transferGift($business_connection_id, $owned_gift_id, $new_owner_chat_id, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'owned_gift_id', 'new_owner_chat_id') + $options;
+
+        return returned::create($this->call('transferGift', $data));
+    }
+
+    /**
+     * @return returnedStory
+     */
+    public function postStory($business_connection_id, $content, $active_period, array $options = []): returnedStory
+    {
+
+        $data = compact('business_connection_id', 'content', 'active_period') + $options;
+
+        return returnedStory::create($this->call('postStory', $data));
+    }
+
+    /**
+     * @return returnedStory
+     */
+    public function repostStory($business_connection_id, $from_chat_id, $from_story_id, $active_period, array $options = []): returnedStory
+    {
+
+        $data = compact('business_connection_id', 'from_chat_id', 'from_story_id', 'active_period') + $options;
+
+        return returnedStory::create($this->call('repostStory', $data));
+    }
+
+    /**
+     * @return returnedStory
+     */
+    public function editStory($business_connection_id, $story_id, $content, array $options = []): returnedStory
+    {
+
+        $data = compact('business_connection_id', 'story_id', 'content') + $options;
+
+        return returnedStory::create($this->call('editStory', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function deleteStory($business_connection_id, $story_id, array $options = []): returned
+    {
+
+        $data = compact('business_connection_id', 'story_id') + $options;
+
+        return returned::create($this->call('deleteStory', $data));
+    }
+
+    /**
+     * @return SentWebAppMessage
+     */
+    public function answerWebAppQuery($web_app_query_id, $result, array $options = []): SentWebAppMessage
+    {
+
+        $result = json_encode($result);
+
+        $data = compact('web_app_query_id', 'result') + $options;
+
+        return SentWebAppMessage::create($this->call('answerWebAppQuery', $data));
+    }
+
+    /**
+     * @return returnedPreparedInlineMessage
+     */
+    public function savePreparedInlineMessage($user_id, $result, array $options = []): returnedPreparedInlineMessage
+    {
+
+        $result = json_encode($result);
+
+        $data = compact('user_id', 'result') + $options;
+
+        return returnedPreparedInlineMessage::create($this->call('savePreparedInlineMessage', $data));
+    }
+
+    /**
+     * @return PreparedKeyboardButton
+     */
+    public function savePreparedKeyboardButton($user_id, $button, array $options = []): PreparedKeyboardButton
+    {
+
+        $result = json_encode($result);
+
+        $data = compact('user_id', 'button') + $options;
+
+        return PreparedKeyboardButton::create($this->call('savePreparedKeyboardButton', $data));
+    }
+
+    /**
+     * @return returnedMessage
+     */
+    public function editMessageText($chat_id, $message_id, $text, array $options = []): returnedMessage
+    {
+
+        $data = compact('chat_id', 'message_id', 'text') + $options;
+
+        return returnedMessage::create($this->call('editMessageText', $data));
+    }
+
+    /**
+     * @return returnedMessage
+     */
+    public function editMessageCaption($chat_id, $message_id, $caption, array $options = []): returnedMessage
+    {
+
+        $data = compact('chat_id', 'message_id', 'caption') + $options;
+
+        return returnedMessage::create($this->call('editMessageCaption', $data));
+    }
+
+    /**
+     * @return returnedMessage
+     */
+    public function editMessageMedia($chat_id, $message_id, $media, array $options = []): returnedMessage
+    {
+
+        $data = compact('chat_id', 'message_id', 'media') + $options;
+
+        return returnedMessage::create($this->call('editMessageMedia', $data));
+    }
+
+    /**
+     * @return returnedMessage
+     */
+    public function editMessageLiveLocation($chat_id, $message_id, $latitude, $longitude, array $options = []): returnedMessage
+    {
+
+        $data = compact('chat_id', 'message_id', 'latitude', 'longitude') + $options;
+
+        return returnedMessage::create($this->call('editMessageLiveLocation', $data));
+    }
+
+    /**
+     * @return returnedMessage
+     */
+    public function stopMessageLiveLocation($chat_id, $message_id, array $options = []): returnedMessage
+    {
+
+        $data = compact('chat_id', 'message_id') + $options;
+
+        return returnedMessage::create($this->call('stopMessageLiveLocation', $data));
+    }
+
+    /**
+     * @return returnedMessage
+     */
+    public function editMessageChecklist($business_connection_id, $chat_id, $message_id, $checklist, array $options = []): returnedMessage
+    {
+
+        $data = compact('business_connection_id', 'chat_id', 'message_id', 'checklist') + $options;
+
+        return returnedMessage::create($this->call('editMessageChecklist', $data));
+    }
+
+    /**
+     * @return returnedMessage
+     */
+    public function editMessageReplyMarkup($chat_id = null, $message_id = null, $reply_markup = null, array $options = []): returnedMessage
+    {
+
+        $data = compact('chat_id', 'message_id', 'reply_markup') + $options;
+
+        return returnedMessage::create($this->call('editMessageReplyMarkup', $data));
+    }
+
+    /**
+     * @return returnedPoll
+     */
+    public function stopPoll($chat_id, $message_id, array $options = []): returnedPoll
+    {
+
+        $data = compact('chat_id', 'message_id') + $options;
+
+        return returnedPoll::create($this->call('stopPoll', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function approveSuggestedPost($chat_id, $message_id, array $options = []): returned
+    {
+
+        $data = compact('chat_id', 'message_id') + $options;
+
+        return returned::create($this->call('approveSuggestedPost', $data));
+    }
+
+    /**
+     * @return returned
+     */
+    public function declineSuggestedPost($chat_id, $message_id, array $options = []): returned
+    {
+
+        $data = compact('chat_id', 'message_id') + $options;
+
+        return returned::create($this->call('declineSuggestedPost', $data));
+    }
+
 
     public function deleteMessage($chat_id, $message_id): returned
     {
-        return returned::create($this->bot('deleteMessage', compact('chat_id', 'message_id')));
+        return returned::create($this->call('deleteMessage', compact('chat_id', 'message_id')));
     }
 
     public function deleteMessages($chat_id, $message_ids): returned
     {
-        return returned::create($this->bot('deleteMessages', compact('chat_id', 'message_ids')));
+        return returned::create($this->call('deleteMessages', compact('chat_id', 'message_ids')));
     }
 
-    public function sendSticker($chat_id, $sticker, $message_thread_id = null, $emoji = null, bool $disable_notification = false, bool $protect_content = false, bool $allow_paid_broadcast = false, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null): returnedMessage
+    /**
+     * @return returned
+     */
+    public function deleteMessageReaction($chat_id, $message_id, array $options = []): returned
     {
-        return returnedMessage::create($this->bot('sendSticker', compact('chat_id', 'sticker', 'message_thread_id', 'emoji', 'disable_notification', 'protect_content', 'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup')));
+
+        $data = compact('chat_id', 'message_id') + $options;
+
+        return returned::create($this->call('deleteMessageReaction', $data));
     }
 
-    public function getStickerSet(string $name): returnedStickerSet
+    /**
+     * @return returned
+     */
+    public function deleteAllMessageReactions($chat_id, array $options = []): returned
     {
-        return returnedStickerSet::create($this->bot('getStickerSet', compact('name')));
+
+        $data = compact('chat_id') + $options;
+
+        return returned::create($this->call('deleteAllMessageReactions', $data));
     }
 
-
-    public function getCustomEmojiStickers($custom_emoji_ids): returnedArrayOfSticker
+    /**
+     * @return returnedMessage
+     */
+    public function sendSticker($chat_id, $sticker, array $options = []): returnedMessage
     {
-        return returnedArrayOfSticker::create($this->bot('getCustomEmojiStickers', compact('custom_emoji_ids')));
+
+        $data = compact('chat_id', 'sticker') + $options;
+
+        return returnedMessage::create($this->call('sendSticker', $data));
     }
 
-    public function uploadStickerFile($user_id, $sticker, $sticker_format): returnedFile
+    /**
+     * @return returnedStickerSet
+     */
+    public function getStickerSet($name, array $options = []): returnedStickerSet
     {
-        return returnedFile::create($this->bot('uploadStickerFile', compact('user_id', 'sticker', 'sticker_format')));
+
+        $data = compact('name') + $options;
+
+        return returnedStickerSet::create($this->call('getStickerSet', $data));
     }
 
-    public function createNewStickerSet($user_id, $name, $title, $stickers, $sticker_type = 'regular', $needs_repainting = false): returned
+    /**
+     * @return returnedArrayOfSticker
+     */
+    public function getCustomEmojiStickers($custom_emoji_ids, array $options = []): returnedArrayOfSticker
     {
-        return returned::create($this->bot('createNewStickerSet', compact('user_id', 'name', 'title', 'stickers', 'sticker_type', 'needs_repainting')));
+
+        $data = compact('custom_emoji_ids') + $options;
+
+        return returnedArrayOfSticker::create($this->call('getCustomEmojiStickers', $data));
     }
 
-    public function addStickerToSet($user_id, $name, $sticker): returned
+    /**
+     * @return returnedFile
+     */
+    public function uploadStickerFile($user_id, $sticker, $sticker_format, array $options = []): returnedFile
     {
-        return returned::create($this->bot('addStickerToSet', compact('user_id', 'name', 'sticker')));
+
+        $data = compact('user_id', 'sticker', 'sticker_format') + $options;
+
+        return returnedFile::create($this->call('uploadStickerFile', $data));
     }
 
-
-    public function setStickerPositionInSet(string $sticker, int $position): returned
+    /**
+     * @return returned
+     */
+    public function createNewStickerSet($user_id, $name, $title, $stickers, array $options = []): returned
     {
-        return returned::create($this->bot('setStickerPositionInSet', compact('sticker', 'position')));
+
+        $data = compact('user_id', 'name', 'title', 'stickers') + $options;
+
+        return returned::create($this->call('createNewStickerSet', $data));
     }
 
-
-    public function deleteStickerFromSet(string $sticker): returned
+    /**
+     * @return returned
+     */
+    public function addStickerToSet($user_id, $name, $title, $sticker, array $options = []): returned
     {
-        return returned::create($this->bot('deleteStickerFromSet', compact('sticker')));
+
+        $data = compact('user_id', 'name', 'sticker') + $options;
+
+        return returned::create($this->call('addStickerToSet', $data));
     }
 
-    public function replaceStickerInSet($user_id, $name, $old_sticker, $sticker): returned
+    /**
+     * @return returned
+     */
+    public function setStickerPositionInSet(string $sticker, int $position, array $options = []): returned
     {
-        return returned::create($this->bot('replaceStickerInSet', compact('user_id', 'name', 'old_sticker', 'sticker')));
+
+        $data = compact('sticker', 'position') + $options;
+
+        return returned::create($this->call('setStickerPositionInSet', $data));
     }
 
-    public function setStickerEmojiList($sticker, $emoji_list): returned
+    /**
+     * @return returned
+     */
+    public function deleteStickerFromSet(string $sticker, array $options = []): returned
     {
-        return returned::create($this->bot('setStickerEmojiList', compact('sticker', 'emoji_list')));
+
+        $data = compact('sticker') + $options;
+
+        return returned::create($this->call('deleteStickerFromSet', $data));
     }
 
-    public function setStickerKeywords($sticker, $keywords = []): returned
+    /**
+     * @return returned
+     */
+    public function replaceStickerInSet($user_id, $name, $old_sticker, $sticker, array $options = []): returned
     {
-        $keywords = json_encode($keywords);
-        return returned::create($this->bot('setStickerKeywords', compact('sticker', 'keywords')));
+
+        $data = compact('user_id', 'name', 'old_sticker', 'sticker') + $options;
+
+        return returned::create($this->call('replaceStickerInSet', $data));
     }
 
-    public function setStickerMaskPosition($sticker, $mask_position = null): returned
+    /**
+     * @return returned
+     */
+    public function setStickerEmojiList($sticker, $emoji_list, array $options = []): returned
     {
-        return returned::create($this->bot('setStickerMaskPosition', compact('sticker', 'mask_position')));
+
+        $data = compact('sticker', 'emoji_list') + $options;
+
+        return returned::create($this->call('setStickerEmojiList', $data));
     }
 
-    public function setStickerSetTitle($name, $title): returned
+    /**
+     * @return returned
+     */
+    public function setStickerKeywords($sticker, $keywords = [], array $options = []): returned
     {
-        return returned::create($this->bot('setStickerSetTitle', compact('name', 'title')));
+
+        $data = compact('sticker', 'keywords') + $options;
+
+        return returned::create($this->call('setStickerKeywords', $data));
     }
 
-    public function setStickerSetThumbnail($name, $user_id, $thumbnail, $format): returned
+    /**
+     * @return returned
+     */
+    public function setStickerMaskPosition($sticker, array $options = []): returned
     {
-        return returned::create($this->bot('setStickerSetThumbnail', compact('name', 'user_id', 'thumbnail', 'format')));
+
+        $data = compact('sticker') + $options;
+
+        return returned::create($this->call('setStickerMaskPosition', $data));
     }
 
-    public function setCustomEmojiStickerSetThumbnail($name, $custom_emoji_id = ''): returned
+    /**
+     * @return returned
+     */
+    public function setStickerSetTitle($name, $title, array $options = []): returned
     {
-        return returned::create($this->bot('setCustomEmojiStickerSetThumbnail', compact('name', 'custom_emoji_id')));
+
+        $data = compact('name', 'title') + $options;
+
+        return returned::create($this->call('setStickerSetTitle', $data));
     }
 
-    public function deleteStickerSet($name): returned
+    /**
+     * @return returned
+     */
+    public function setStickerSetThumbnail($name, $user_id, $format, array $options = []): returned
     {
-        return returned::create($this->bot('deleteStickerSet', compact('name')));
+
+        $data = compact('name', 'user_id', 'format') + $options;
+
+        return returned::create($this->call('setStickerSetThumbnail', $data));
     }
 
-    public function getAvailableGifts($name): returnedGifts
+    /**
+     * @return returned
+     */
+    public function setCustomEmojiStickerSetThumbnail($name, array $options = []): returned
     {
-        return returnedGifts::create($this->bot('getAvailableGifts'));
+
+        $data = compact('name') + $options;
+
+        return returned::create($this->call('setCustomEmojiStickerSetThumbnail', $data));
     }
 
-    public function sendGift($user_id, $chat_id, $gift_id, $pay_for_upgrade = null, $text = null, $text_parse_mode = null, $text_entities = null): returned
+    /**
+     * @return returned
+     */
+    public function deleteStickerSet($name, array $options = []): returned
     {
-        return returned::create($this->bot('sendGift', compact('user_id', 'chat_id', 'gift_id', 'pay_for_upgrade', 'text', 'text_parse_mode', 'text_entities')));
+
+        $data = compact('name') + $options;
+
+        return returned::create($this->call('deleteStickerSet', $data));
     }
 
-    public function verifyUser($user_id, $custom_description = null): returned
-    {
-        return returned::create($this->bot('verifyUser', compact('user_id', 'custom_description')));
-    }
-
-    public function verifyChat($chat_id, $custom_description = null): returned
-    {
-        return returned::create($this->bot('verifyUser', compact('chat_id', 'custom_description')));
-    }
-
-    public function removeUserVerification($user_id): returned
-    {
-        return returned::create($this->bot('removeUserVerification', compact('user_id')));
-    }
-
-    public function removeChatVerification($chat_id): returned
-    {
-        return returned::create($this->bot('removeChatVerification', compact('chat_id')));
-    }
-
-    public function answerInlineQuery($inline_query_id, $results, $cache_time = 300, $is_personal = false, $next_offset = '', $button = null): returned
+    /**
+     * @return returned
+     */
+    public function answerInlineQuery($inline_query_id, $results, array $options = []): returned
     {
         $results = json_encode($results);
-        return returned::create($this->bot('answerInlineQuery', compact('inline_query_id', 'results', 'cache_time', 'is_personal', 'next_offset', 'button')));
+
+        $data = compact('inline_query_id', 'results') + $options;
+
+        return returned::create($this->call('deleteStickerSet', $data));
     }
 
-
-    public function answerWebAppQuery($web_app_query_id, $result): SentWebAppMessage
-    {
-        $result = json_encode($result);
-
-        return SentWebAppMessage::create($this->bot('answerWebAppQuery', compact('web_app_query_id', 'result')));
-    }
-
-
-    public function SentWebAppMessage($inline_message_id): returned
-    {
-
-        return returned::create($this->bot('SentWebAppMessage', compact('inline_message_id')));
-    }
-
-    public function savePreparedInlineMessage($user_id, $result, $allow_user_chats = false, $allow_bot_chats = false, $allow_group_chats = false, $allow_channel_chats = false): returnedPreparedInlineMessage
-    {
-        return returnedPreparedInlineMessage::create($this->bot('savePreparedInlineMessage', compact('user_id', 'result', 'allow_user_chats', 'allow_bot_chats', 'allow_group_chats', 'allow_channel_chats')));
-    }
-
-    public function sendInvoice($chat_id, $title, $description, $payload, $currency, $prices, $provider_token = '', $max_tip_amount = 0, $suggested_tip_amounts = [], $start_parameter = '', $provider_data = '', $photo_url = '', $photo_size = 0, $photo_width = 0, $photo_height = 0, $need_name = false, $need_phone_number = false, $need_email = false, $need_shipping_address = false, $send_phone_number_to_provider = false, $send_email_to_provider = false, $is_flexible = false, $disable_notification = false, $protect_content = false, $allow_paid_broadcast = false, ?string $message_effect_id = '', $reply_parameters = null, $reply_markup = null): returnedMessage
-    {
-        return returnedMessage::create($this->bot('sendInvoice', compact(
-            'chat_id', 'title', 'description', 'payload', 'currency', 'prices',
-            'provider_token', 'max_tip_amount', 'suggested_tip_amounts',
-            'start_parameter', 'provider_data', 'photo_url', 'photo_size',
-            'photo_width', 'photo_height', 'need_name', 'need_phone_number',
-            'need_email', 'need_shipping_address', 'send_phone_number_to_provider',
-            'send_email_to_provider', 'is_flexible', 'disable_notification',
-            'protect_content', 'allow_paid_broadcast', 'message_effect_id',
-            'reply_parameters', 'reply_markup'
-        )));
-    }
-
-    public function createInvoiceLink($title, $description, $payload, $currency, $prices, $business_connection_id = '', $provider_token = '', $subscription_period = 0, $max_tip_amount = 0, $suggested_tip_amounts = [], $provider_data = '', $photo_url = '', $photo_size = 0, $photo_width = 0, $photo_height = 0, $need_name = false, $need_phone_number = false, $need_email = false, $need_shipping_address = false, $send_phone_number_to_provider = false, $send_email_to_provider = false, $is_flexible = false): returnedString
-    {
-        return returnedString::create($this->bot('createInvoiceLink', compact(
-            'title', 'description', 'payload', 'currency', 'prices',
-            'business_connection_id', 'provider_token', 'subscription_period',
-            'max_tip_amount', 'suggested_tip_amounts', 'provider_data',
-            'photo_url', 'photo_size', 'photo_width', 'photo_height', 'need_name',
-            'need_phone_number', 'need_email', 'need_shipping_address',
-            'send_phone_number_to_provider', 'send_email_to_provider', 'is_flexible'
-        )));
-    }
-
-    public function answerShippingQuery($shipping_query_id, $ok, $shipping_options = [], $error_message = ''): returned
-    {
-        return returned::create($this->bot('answerShippingQuery', compact(
-            'shipping_query_id', 'ok', 'shipping_options', 'error_message'
-        )));
-    }
-
-    public function answerPreCheckoutQuery($pre_checkout_query_id, $ok, $error_message = ''): returned
-    {
-        return returned::create($this->bot('answerPreCheckoutQuery', compact(
-            'pre_checkout_query_id', 'ok', 'error_message'
-        )));
-    }
-
-    public function getStarTransactions($offset = 0, $limit = 100): returnedStarTransaction
-    {
-        return returnedStarTransaction::create($this->bot('getStarTransactions', compact(
-            'offset', 'limit'
-        )));
-    }
-
-    public function refundStarPayment($user_id, $telegram_payment_charge_id): returned
-    {
-        return returned::create($this->bot('refundStarPayment', compact(
-            'user_id', 'telegram_payment_charge_id'
-        )));
-    }
     /**
-     * Send text messages.
-     *
-     * <code>
-     * $params = [
-     *       'chat_id'                     => '',  // int|string - Required. Unique identifier for the target chat or username of the target channel (in the format "@channelusername")
-     *       'text'                        => '',  // string     - Required. Text of the message to be sent
-     *       'parse_mode'                  => '',  // string     - (Optional). Send Markdown or HTML, if you want Telegram apps to show bold, italic, fixed-width text or inline URLs in your bot's message.
-     *       'entities'                    => '',  // array      - (Optional). List of special entities that appear in the caption, which can be specified instead of parse_mode
-     *       'disable_web_page_preview'    => '',  // bool       - (Optional). Disables link previews for links in this message
-     *       'protect_content'             => '',  // bool       - (Optional). Protects the contents of the sent message from forwarding and saving
-     *       'disable_notification'        => '',  // bool       - (Optional). Sends the message silently. iOS users will not receive a notification, Android users will receive a notification with no sound.
-     *       'reply_to_message_id'         => '',  // int        - (Optional). If the message is a reply, ID of the original message
-     *       'allow_sending_without_reply' => '',  // bool       - (Optional). Pass True, if the message should be sent even if the specified replied-to message is not found
-     *       'reply_markup'                => '',  // object     - (Optional). One of either InlineKeyboardMarkup|ReplyKeyboardMarkup|ReplyKeyboardRemove|ForceReply for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
-     * ]
-     * </code>
-     *
-     * @link https://core.telegram.org/bots/api#sendmessage
-     *
-     * @throws TelegramSDKException
+     * @return returnedMessage
      */
-    public function editUserStarSubscription($user_id, $telegram_payment_charge_id, $is_canceled): returned
+    public function sendInvoice($chat_id, $title, $description, $payload, $currency, $prices, array $options = []): returnedMessage
     {
-        return returned::create($this->bot('editUserStarSubscription', compact(
-            'user_id', 'telegram_payment_charge_id', 'is_canceled'
-        )));
+
+        $data = compact('chat_id', 'title', 'description', 'payload', 'currency', 'prices') + $options;
+
+        return returnedMessage::create($this->call('sendInvoice', $data));
     }
 
-    public function sendGame($chat_id, $game_short_name, ?string $business_connection_id = null, ?int $message_thread_id = null, $disable_notification = null, $protect_content = null, $allow_paid_broadcast = null, ?string $message_effect_id = null, $reply_parameters = null, $reply_markup = null)
+    /**
+     * @return returnedString
+     */
+    public function createInvoiceLink($title, $description, $payload, $currency, $prices, array $options = []): returnedString
     {
-        return returnedMessage::create($this->bot('sendGame', compact(
-            'chat_id', 'game_short_name', 'business_connection_id', 'message_thread_id', 'disable_notification', 'protect_content',
-            'allow_paid_broadcast', 'message_effect_id', 'reply_parameters', 'reply_markup'
-        )));
+
+        $data = compact('title', 'description', 'payload', 'currency', 'prices') + $options;
+
+        return returnedString::create($this->call('createInvoiceLink', $data));
     }
 
-    public function setGameScore($user_id, $score, bool $force = false, bool $disable_edit_message = false, ?int $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null): returnedMessage|returned
+
+    /**
+     * @return returned
+     */
+    public function answerShippingQuery($shipping_query_id, $ok, array $options = []): returned
     {
-        return returnedMessage::create($this->bot('setGameScore', compact(
-            'user_id', 'score', 'force', 'disable_edit_message', 'chat_id', 'message_id', 'inline_message_id'
-        )));
+
+        $data = compact('shipping_query_id', 'ok') + $options;
+
+        return returned::create($this->call('answerShippingQuery', $data));
     }
 
-    public function getGameHighScores($user_id, ?int $chat_id = null, ?int $message_id = null, ?string $inline_message_id = null): returnedMessage|returned
+    /**
+     * @return returned
+     */
+    public function answerPreCheckoutQuery($pre_checkout_query_id, $ok, array $options = []): returned
     {
-        return returnedMessage::create($this->bot('getGameHighScores', compact(
-            'user_id', 'chat_id', 'message_id', 'inline_message_id'
-        )));
+
+        $data = compact('pre_checkout_query_id', 'ok') + $options;
+
+        return returned::create($this->call('answerPreCheckoutQuery', $data));
     }
 
-    public function getBusinessAccountGifts($business_connection_id, $owned_gift_id): returned
+    /**
+     * @return returnedStarAmount
+     */
+    public function getMyStarBalance(array $options = []): returnedStarAmount
     {
-        return returned::create($this->bot('getBusinessAccountGifts', compact(
-            'business_connection_id', 'owned_gift_id'
-        )));
-    }
-    public function convertGiftToStars($business_connection_id, $owned_gift_id): returned
-    {
-        return returned::create($this->bot('convertGiftToStars', compact(
-            'business_connection_id', 'owned_gift_id'
-        )));
+
+        $data = $options;
+
+        return returnedStarAmount::create($this->call('getMyStarBalance', $data));
     }
 
-    public function transferGift($business_connection_id, $owned_gift_id, $new_owner_chat_id, $star_count = null): returned
+    /**
+     * @return returnedStarTransaction
+     */
+    public function getStarTransactions(array $options = []): returnedStarTransaction
     {
-        return returned::create($this->bot('transferGift', compact(
-            'business_connection_id', 'new_owner_chat_id', 'owned_gift_id', 'star_count'
-        )));
+
+        $data = $options;
+
+        return returnedStarTransaction::create($this->call('getStarTransactions', $data));
     }
 
-    public function upgradeGift($business_connection_id, $owned_gift_id, $keep_original_details = null, $star_count = null): returned
+
+    /**
+     * @return returned
+     */
+    public function refundStarPayment($user_id, $telegram_payment_charge_id, array $options = []): returned
     {
-        return returned::create($this->bot('upgradeGift', compact(
-            'business_connection_id', 'keep_original_details', 'owned_gift_id', 'star_count'
-        )));
+
+        $data = compact('user_id', 'telegram_payment_charge_id') + $options;
+
+        return returned::create($this->call('refundStarPayment', $data));
     }
 
-    public function postStory($business_connection_id, $content, $active_period, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, $areas = null, bool $post_to_chat_page = null, bool $protect_content = null): returnedStory|returned
+    /**
+     * @return returned
+     */
+    public function editUserStarSubscription($user_id, $telegram_payment_charge_id, $is_canceled, array $options = []): returned
     {
-        return returnedStory::create($this->bot('postStory', compact(
-            'business_connection_id', 'active_period', 'content', 'caption', 'parse_mode', 'caption_entities', 'areas'
-        )));
+
+        $data = compact('user_id', 'telegram_payment_charge_id', 'is_canceled') + $options;
+
+        return returned::create($this->call('editUserStarSubscription', $data));
     }
 
-    public function editStory($business_connection_id, $story_id, $content, ?string $caption = null, ?string $parse_mode = null, $caption_entities = null, $areas = null): returnedStory|returned
+
+    /**
+     * @return returned
+     */
+    public function setPassportDataErrors($user_id, $errors, array $options = []): returned
     {
-        return returnedStory::create($this->bot('editStory', compact(
-            'business_connection_id', 'story_id', 'content', 'caption', 'parse_mode', 'caption_entities', 'areas'
-        )));
+
+        $data = compact('user_id', 'errors') + $options;
+
+        return returned::create($this->call('setPassportDataErrors', $data));
     }
+
+
+    /**
+     * @return returnedMessage
+     */
+    public function sendGame($chat_id, $game_short_name, array $options = []): returnedMessage
+    {
+
+        $data = compact('chat_id', 'game_short_name') + $options;
+
+        return returnedMessage::create($this->call('sendGame', $data));
+    }
+
+    /**
+     * @return returnedMessage
+     */
+    public function setGameScore($user_id, $score, array $options = []): returnedMessage
+    {
+
+        $data = compact('user_id', 'score') + $options;
+
+        return returnedMessage::create($this->call('setGameScore', $data));
+    }
+
+    /**
+     * @return returnedMessage
+     */
+    public function getGameHighScores($user_id, array $options = []): returnedMessage
+    {
+
+        $data = compact('user_id') + $options;
+
+        return returnedMessage::create($this->call('getGameHighScores', $data));
+    }
+
 }

@@ -3,46 +3,86 @@
 namespace telegramBotApiPhp\Types;
 
 use JsonSerializable;
+use IteratorAggregate;
+use ArrayIterator;
 
-/**
- * Class BaseType
- * کلاس پایه برای تمام انواع آپدیت‌های تلگرام.
- */
-abstract class BaseType implements JsonSerializable
+abstract class BaseType implements JsonSerializable, IteratorAggregate
 {
-    protected array $data;
+    protected array $data = [];
 
-    public function __construct(array $data = [])
+    public function __construct(array|object $data = [])
     {
-        $this->data = $this->mapToObjects($data);
+        $this->data = $this->normalize($data);
     }
 
-    public function __isset($name)
+    public function getIterator(): \Traversable
     {
-        return isset($this->data[$name]);
+        return new ArrayIterator($this->data);
     }
 
-    protected function mapToObjects(array $data): array
+    protected function normalize(array|object $data): array
     {
-        foreach ($data as $key => $value) {
-            if (is_array($value) && $this->isAssocArray($value)) {
-                $data[$key] = new static($value);
-            } elseif (is_array($value)) {
-                $data[$key] = array_map(fn($item) => is_array($item) ? new static($item) : $item, $value);
-            }
+        if ($data instanceof self) {
+            return $data->toArray();
         }
-        return $data;
+
+        if (is_object($data)) {
+            $data = get_object_vars($data);
+        }
+
+        $result = [];
+
+        foreach ($data as $key => $value) {
+            if ($value instanceof self) {
+                $result[$key] = $value;
+                continue;
+            }
+
+            if (is_array($value)) {
+                if ($this->isAssoc($value)) {
+                    $result[$key] = new static($value);
+                } else {
+                    $items = [];
+                    foreach ($value as $item) {
+                        if ($item instanceof self) {
+                            $items[] = $item;
+                        } elseif (is_array($item)) {
+                            $items[] = new static($item);
+                        } elseif (is_object($item)) {
+                            $items[] = new static(get_object_vars($item));
+                        } else {
+                            $items[] = $item;
+                        }
+                    }
+                    $result[$key] = $items;
+                }
+                continue;
+            }
+
+            if (is_object($value)) {
+                $result[$key] = new static(get_object_vars($value));
+                continue;
+            }
+
+            $result[$key] = $value;
+        }
+
+        return $result;
     }
 
-
-    protected function isAssocArray(array $array): bool
+    protected function isAssoc(array $array): bool
     {
-        return array_keys($array) !== range(0, count($array) - 1);
+        return !array_is_list($array);
     }
 
-    public function __get(string $name)
+    public function __get(string $name): mixed
     {
         return $this->data[$name] ?? null;
+    }
+
+    public function __isset(string $name): bool
+    {
+        return isset($this->data[$name]);
     }
 
     public function toArray(): array
@@ -52,10 +92,10 @@ abstract class BaseType implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return $this->toArray();
+        return $this->data;
     }
 
-    public static function create(?array $data): static
+    public static function create(array|object $data): static
     {
         return new static($data);
     }

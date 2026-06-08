@@ -1,17 +1,15 @@
 <?php
+namespace baleBotPhp\Types;
 
-namespace telegramBotApiPhp\Types;
+use baleBotPhp\Types\BaseType;
+use baleBotPhp\Types\User;
 
 /**
  * Class ChatMemberUpdated
+ * This object contains information about one member of a chat.
  *
- * @property int $message_id شناسه پیام
- * @property User $from فرستنده پیام
- * @property int $date زمان ارسال پیام (Unix timestamp)
- * @property Chat $chat چت مربوط به پیام
- * @property string $text متن پیام
- * @property ChatMember $new_chat_member
- * @property ChatMember $old_chat_member
+ * @property string $status The member's status in the chat (e.g., "creator", "administrator", "member", "restricted").
+ * @property User $user Information about the user.
  */
 class ChatMemberUpdated extends BaseType
 {
