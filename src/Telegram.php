@@ -5,7 +5,21 @@ declare(strict_types=1);
 namespace telegramBotApiPhp;
 
 use telegramBotApiPhp\Traits\{isChatTypes, isMedia, isUpdates, method, otherTrait};
-use telegramBotApiPhp\Types\{BaseType, CallbackQuery, Message, PreCheckoutQuery};
+use telegramBotApiPhp\Types\{BaseType,
+    BusinessMessagesDeleted,
+    CallbackQuery,
+    ChatBoostRemoved,
+    ChatBoostUpdated,
+    ChatJoinRequest,
+    ChatMemberUpdated,
+    ChosenInlineResult,
+    Message,
+    MessageReactionCountUpdated,
+    MessageReactionUpdated,
+    Poll,
+    PollAnswer,
+    PreCheckoutQuery,
+    ShippingQuery};
 
 class Telegram
 {
@@ -23,25 +37,25 @@ class Telegram
     private int $retryDelayMs = 500;
 
     // Chat & Message Types
-    public const PRIVATE    = 'private';
-    public const GROUP      = 'group';
+    public const PRIVATE = 'private';
+    public const GROUP = 'group';
     public const SUPERGROUP = 'supergroup';
-    public const CHANNEL    = 'channel';
+    public const CHANNEL = 'channel';
 
-    public const _PHOTO      = 'photo';
-    public const _VIDEO      = 'video';
-    public const _FORWARD    = 'forward';
+    public const _PHOTO = 'photo';
+    public const _VIDEO = 'video';
+    public const _FORWARD = 'forward';
     public const _VIDEO_NOTE = 'video_note';
-    public const _AUDIO      = 'audio';
-    public const _VOICE      = 'voice';
-    public const _ANIMATION  = 'animation';
-    public const _STICKER    = 'sticker';
-    public const _DOCUMENT   = 'document';
-    public const _LOCATION   = 'location';
-    public const _CONTACT    = 'contact';
-    public const _GAME       = 'game';
-    public const _TEXT       = 'text';
-    public const _MEDIA      = 'media';
+    public const _AUDIO = 'audio';
+    public const _VOICE = 'voice';
+    public const _ANIMATION = 'animation';
+    public const _STICKER = 'sticker';
+    public const _DOCUMENT = 'document';
+    public const _LOCATION = 'location';
+    public const _CONTACT = 'contact';
+    public const _GAME = 'game';
+    public const _TEXT = 'text';
+    public const _MEDIA = 'media';
 
     public string $urlFile;
 
@@ -60,9 +74,10 @@ class Telegram
         string $token,
         string $apiUrl = self::API_BASE_URL,
         string $fileUrlTemplate = self::DEFAULT_FILE_URL_TEMPLATE,
-        int $maxRetries = 3,
-        int $retryDelayMs = 500
-    ) {
+        int    $maxRetries = 3,
+        int    $retryDelayMs = 500
+    )
+    {
         $this->apiUrl = rtrim($apiUrl, '/');
         $this->fileUrlTemplate = $fileUrlTemplate;
         $this->urlFile = $fileUrlTemplate;
@@ -137,15 +152,15 @@ class Telegram
             $ch = curl_init();
 
             $options = [
-                CURLOPT_URL            => $url,
+                CURLOPT_URL => $url,
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST           => true,
-                CURLOPT_POSTFIELDS     => $data,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $data,
                 CURLOPT_CONNECTTIMEOUT => 5,
-                CURLOPT_TIMEOUT        => 30,
-                CURLOPT_SSL_VERIFYPEER  => true,
-                CURLOPT_USERAGENT      => 'Telegram Bot API Client/2.0 (PHP)',
-                CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_USERAGENT => 'Telegram Bot API Client/2.0 (PHP)',
+                CURLOPT_HTTPHEADER => ['Accept: application/json'],
             ];
 
             if ($isUpload) {
@@ -176,10 +191,10 @@ class Telegram
         }
 
         return (object)[
-            'ok'        => false,
-            'error'     => $curlError ?: 'API Error after ' . $attempt . ' attempts',
+            'ok' => false,
+            'error' => $curlError ?: 'API Error after ' . $attempt . ' attempts',
             'http_code' => $httpCode ?? 0,
-            'attempts'  => $attempt,
+            'attempts' => $attempt,
         ];
     }
 
@@ -240,15 +255,111 @@ class Telegram
         return $this->cacheType[$key] ?? null;
     }
 
-    public function message(): ?Message { return $this->getCachedUpdate('message', Message::class); }
-    public function editedMessage(): ?Message { return $this->getCachedUpdate('edited_message', Message::class); }
-    public function callbackQuery(): ?CallbackQuery { return $this->getCachedUpdate('callback_query', CallbackQuery::class); }
-    public function preCheckoutQuery(): ?PreCheckoutQuery { return $this->getCachedUpdate('pre_checkout_query', PreCheckoutQuery::class); }
+    public function message(): ?Message
+    {
+        return $this->getCachedUpdate('message', Message::class);
+    }
+
+    public function editedMessage(): ?Message
+    {
+        return $this->getCachedUpdate('edited_message', Message::class);
+    }
+
+    public function callbackQuery(): ?CallbackQuery
+    {
+        return $this->getCachedUpdate('callback_query', CallbackQuery::class);
+    }
+
+    public function preCheckoutQuery(): ?PreCheckoutQuery
+    {
+        return $this->getCachedUpdate('pre_checkout_query', PreCheckoutQuery::class);
+    }
 
     // Telegram Specific Updates
-    public function channelPost(): ?Message { return $this->getCachedUpdate('channel_post', Message::class); }
-    public function editedChannelPost(): ?Message { return $this->getCachedUpdate('edited_channel_post', Message::class); }
-    public function businessMessage(): ?Message { return $this->getCachedUpdate('business_message', Message::class); }
+    public function channelPost(): ?Message
+    {
+        return $this->getCachedUpdate('channel_post', Message::class);
+    }
+
+    public function editedChannelPost(): ?Message
+    {
+        return $this->getCachedUpdate('edited_channel_post', Message::class);
+    }
+
+    public function businessMessage(): ?Message
+    {
+        return $this->getCachedUpdate('business_message', Message::class);
+    }
+
+    public function editedBusinessMessage(): ?Message
+    {
+        return $this->getCachedUpdate('edited_business_message', Message::class);
+    }
+
+    public function deletedBusinessMessages(): ?BusinessMessagesDeleted
+    {
+        return $this->getCachedUpdate('deleted_business_messages', BusinessMessagesDeleted::class);
+    }
+
+    public function messageReaction(): ?MessageReactionUpdated
+    {
+        return $this->getCachedUpdate('message_reaction', MessageReactionUpdated::class);
+    }
+
+    public function messageReactionCount(): ?MessageReactionCountUpdated
+    {
+        return $this->getCachedUpdate('message_reaction_count', MessageReactionCountUpdated::class);
+    }
+
+    public function inlineQuery(): ?inlineQuery
+    {
+        return $this->getCachedUpdate('inline_query', inlineQuery::class);
+    }
+
+    public function chosenInlineResult(): ?ChosenInlineResult
+    {
+        return $this->getCachedUpdate('chosen_inline_result', ChosenInlineResult::class);
+    }
+
+    public function shippingQuery(): ?ShippingQuery
+    {
+        return $this->getCachedUpdate('shipping_query', ShippingQuery::class);
+    }
+
+    public function purchasedPaidMedia(): ?PreCheckoutQuery
+    {
+        return $this->getCachedUpdate('purchased_paid_media', PreCheckoutQuery::class);
+    }
+    public function poll(): ?Poll
+    {
+        return $this->getCachedUpdate('poll', Poll::class);
+    }
+    public function pollAnswer(): ?PollAnswer
+    {
+        return $this->getCachedUpdate('poll_answer', PollAnswer::class);
+    }
+
+    public function myChatMember(): ?ChatMemberUpdated
+    {
+        return $this->getCachedUpdate('my_chat_member', ChatMemberUpdated::class);
+    }
+    public function chatMember(): ?ChatMemberUpdated
+    {
+        return $this->getCachedUpdate('chat_member', ChatMemberUpdated::class);
+    }
+
+    public function chatJoinRequest(): ?ChatJoinRequest
+    {
+        return $this->getCachedUpdate('chat_join_request', ChatJoinRequest::class);
+    }
+    public function chatBoost(): ?ChatBoostUpdated
+    {
+        return $this->getCachedUpdate('chat_boost', ChatBoostUpdated::class);
+    }
+    public function removedChatBoost(): ?ChatBoostRemoved
+    {
+        return $this->getCachedUpdate('removed_chat_boost', ChatBoostRemoved::class);
+    }
 
     public function checkUpdateExists(string $key): bool
     {

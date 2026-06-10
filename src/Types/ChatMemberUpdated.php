@@ -1,8 +1,8 @@
 <?php
-namespace baleBotPhp\Types;
+namespace telegramBotApiPhp\Types;
 
-use baleBotPhp\Types\BaseType;
-use baleBotPhp\Types\User;
+use telegramBotApiPhp\Types\BaseType;
+use telegramBotApiPhp\Types\User;
 
 /**
  * Class ChatMemberUpdated
