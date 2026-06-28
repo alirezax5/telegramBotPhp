@@ -4,33 +4,14 @@
 namespace telegramBotApiPhp\Types;
 
 /**
- * Class ChatInviteLink
+ * Class returnedChatJoinRequest
  * @package telegramBotApiPhp\Types
- * @method bool getOk()
- * @method int getErrorCode()
- * @method string getDescription()
- * @method ChatJoinRequest getResult()
- * @method bool issetOk()
- * @method bool issetErrorCode()
- * @method bool issetDescription()
- * @method bool issetResult()
+ * @property bool $ok status
+ * @property int $error_code
+ * @property string $description
+ * @property ChatJoinRequest $result
  */
-class returnedChatJoinRequest extends base
+class returnedChatJoinRequest extends BaseType
 {
-    static protected $map = [
-        'ok' => true,
-        'error_code' => true,
-        'description' => true,
-        'result' => ChatJoinRequest::class,
-    ];
 
-    protected $Ok;
-    protected $ErrorCode;
-    protected $Description;
-    protected $Result;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

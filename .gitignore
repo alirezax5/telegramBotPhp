@@ -1,0 +1,8 @@
+.idea
+index.php
+vendor
+a.txt
+1.php
+old
+*.zip
+error_log.txt

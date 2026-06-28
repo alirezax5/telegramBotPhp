@@ -4,22 +4,14 @@
 namespace telegramBotApiPhp\Types;
 
 /**
- * Class returned
+ * Class returnedSentWebAppMessage
  * @package telegramBotApiPhp\Types
- * @method bool getSentWebAppMessage()
- * @method bool issetSentWebAppMessage()
-
+ * @property bool $ok status
+ * @property int $error_code
+ * @property string $description
+ * @property SentWebAppMessage $result
  */
-class returnedSentWebAppMessage extends base
+class returnedSentWebAppMessage extends BaseType
 {
-    static protected $map = [
-        'SentWebAppMessage' => true,
-    ];
 
-    protected $SentWebAppMessage;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

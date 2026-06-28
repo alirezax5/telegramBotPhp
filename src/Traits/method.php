@@ -4,27 +4,38 @@
 namespace telegramBotApiPhp\Traits;
 
 
-use baleBotPhp\Types\returnedTransaction;
 use telegramBotApiPhp\Types\{returned,
+    returnedArrayOfChatMember,
+    returnedArrayOfGameHighScore,
+    returnedArrayOfMessageId,
     returnedArrayOfSticker,
+    returnedArrayBotCommand,
+    returnedBotAccessSettings,
     returnedBotDescription,
     returnedBotName,
     returnedBotShortDescription,
+    returnedBusinessConnection,
     returnedChat,
+    returnedChatAdministratorRights,
     returnedChatInviteLink,
     returnedChatMember,
     returnedFile,
+    returnedForumTopic,
     returnedGifts,
     returnedInt,
     returnedMenuButton,
     returnedMessage,
     returnedMessageId,
+    returnedOwnedGifts,
+    returnedPoll,
     returnedPreparedInlineMessage,
+    returnedPreparedKeyboardButton,
     returnedStarAmount,
     returnedStarTransaction,
     returnedStickerSet,
     returnedString,
     returnedUser,
+    returnedUserChatBoosts,
     returnedUserProfileAudios,
     returnedUserProfilePhotos,
     returnedWebhookInfo,
@@ -41,15 +52,21 @@ trait method
      */
     private function prepareBotData(array $data): array
     {
-        // آماده‌سازی reply_markup
-        if (isset($data['reply_markup']) && is_array($data['reply_markup'])) {
-            $data['reply_markup'] = json_encode(
-                $data['reply_markup'],
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-            );
+        $jsonFields = [
+            'reply_markup', 'prices', 'options', 'commands', 'errors',
+            'accepted_gift_types', 'permissions', 'result', 'checklist',
+            'content', 'button',
+        ];
+
+        foreach ($jsonFields as $field) {
+            if (isset($data[$field]) && is_array($data[$field])) {
+                $data[$field] = json_encode(
+                    $data[$field],
+                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                );
+            }
         }
 
-        // آماده‌سازی رسانه‌ها برای آپلود
         $data = $this->prepareMediaForUpload($data);
 
         return $data;
@@ -66,19 +83,25 @@ trait method
         ];
 
         foreach ($fileFields as $field) {
-            if (isset($data[$field])) {
+            if (isset($data[$field]) && !is_array($data[$field])) {
                 $data[$field] = $this->prepareFileInput($data[$field]);
             }
         }
 
-        // پشتیبانی از sendMediaGroup (media به صورت آرایه جیسون)
-        if (isset($data['media']) && is_array($data['media'])) {
-            $data['media'] = $this->prepareMediaGroup($data['media']);
+        if (isset($data['sticker']) && is_array($data['sticker'])) {
+            if (isset($data['sticker']['media'])) {
+                $data['sticker']['media'] = $this->prepareFileInput($data['sticker']['media']);
+            }
+            $data['sticker'] = json_encode($data['sticker'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
-        // پشتیبانی از media در editMessageMedia و غیره
-        if (isset($data['media']) && is_array($data['media']) && isset($data['media']['media'])) {
-            $data['media']['media'] = $this->prepareFileInput($data['media']['media']);
+        if (isset($data['media']) && is_array($data['media'])) {
+            if (isset($data['media']['media'])) {
+                $data['media']['media'] = $this->prepareFileInput($data['media']['media']);
+                $data['media'] = json_encode($data['media'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            } else {
+                $data['media'] = $this->prepareMediaGroup($data['media']);
+            }
         }
 
         return $data;
@@ -134,9 +157,9 @@ trait method
 
     // ====================== Updates & Webhook ======================
 
-    public function getUpdates(int $offset = 0, int $limit = 10, ?int $timeout = null, ?array $allowed_updates = null): returnedMessage
+    public function getUpdates(int $offset = 0, int $limit = 10, ?int $timeout = null, ?array $allowed_updates = null): returned
     {
-        return returnedMessage::create($this->call('getUpdates', compact('offset', 'limit', 'timeout', 'allowed_updates')));
+        return returned::create($this->call('getUpdates', compact('offset', 'limit', 'timeout', 'allowed_updates')));
     }
 
     public function setWebhook(string $url, array $options = []): returned
@@ -206,7 +229,7 @@ trait method
         return returnedMessageId::create($this->call('copyMessage', $data));
     }
 
-    public function forwardMessages($chat_id, $from_chat_id, array $message_ids): returnedArrayOfMessageId
+    public function forwardMessages($chat_id, $from_chat_id, array $message_ids, array $options = []): returnedArrayOfMessageId
     {
         $data = compact('chat_id', 'from_chat_id', 'message_ids') + $options;
 
@@ -301,7 +324,7 @@ trait method
      * @return returnedMessage
      */
 
-    public function sendVoice($chat_id, $animation, array $options = [])
+    public function sendVoice($chat_id, $voice, array $options = []): returnedMessage
     {
         $data = compact('chat_id', 'voice') + $options;
 
@@ -313,7 +336,7 @@ trait method
      * @return returnedMessage
      */
 
-    public function sendVideoNote($chat_id, $animation, array $options = [])
+    public function sendVideoNote($chat_id, $video_note, array $options = []): returnedMessage
     {
         $data = compact('chat_id', 'video_note') + $options;
 
@@ -517,7 +540,6 @@ trait method
 
     public function restrictChatMember($chat_id, $user_id, $permissions, array $options = [])
     {
-        $permissions = json_encode($permissions);
         $data = compact('chat_id', 'user_id', 'permissions') + $options;
         return returned::create($this->call('restrictChatMember', $data));
     }
@@ -581,9 +603,8 @@ trait method
      * @return returned
      */
 
-    public function setChatPermissions($chat_id, $permissions, array $options = [])
+    public function setChatPermissions($chat_id, $permissions, array $options = []): returned
     {
-        $permissions = json_encode($permissions);
 
         $data = compact('chat_id', 'permissions') + $options;
 
@@ -791,25 +812,34 @@ trait method
     }
 
     /**
-     * @return returnedChatMember
+     * @return returnedArrayOfChatMember
      */
-    public function getChatAdministrators($chat_id, array $options = [])
+    public function getChatAdministrators($chat_id, array $options = []): returnedArrayOfChatMember
     {
 
         $data = compact('chat_id') + $options;
 
-        return returned::create($this->call('getChatAdministrators', $data));
+        return returnedArrayOfChatMember::create($this->call('getChatAdministrators', $data));
     }
 
     /**
      * @return returnedInt
      */
-    public function getChatMembersCount($chat_id, array $options = [])
+    public function getChatMemberCount($chat_id, array $options = []): returnedInt
     {
 
         $data = compact('chat_id') + $options;
 
-        return returnedInt::create($this->call('getChatMembersCount', $data));
+        return returnedInt::create($this->call('getChatMemberCount', $data));
+    }
+
+    /**
+     * @return returnedInt
+     */
+    public function getChatMembersCount($chat_id, array $options = []): returnedInt
+    {
+
+        return $this->getChatMemberCount($chat_id, $options);
     }
 
     /**
@@ -1002,10 +1032,13 @@ trait method
     /**
      * @return returned
      */
-    public function answerCallbackQuery($callback_query_id, $text, array $options = []): returned
+    public function answerCallbackQuery($callback_query_id, ?string $text = null, array $options = []): returned
     {
 
-        $data = compact('callback_query_id', 'text') + $options;
+        $data = compact('callback_query_id') + $options;
+        if ($text !== null) {
+            $data['text'] = $text;
+        }
 
         return returned::create($this->call('answerCallbackQuery', $data));
     }
@@ -1190,7 +1223,7 @@ trait method
     /**
      * @return returned
      */
-    public function removeMyProfilePhoto($options): returned
+    public function removeMyProfilePhoto(array $options = []): returned
     {
 
         $data = $options;
@@ -1248,10 +1281,10 @@ trait method
     /**
      * @return returnedGifts
      */
-    public function getAvailableGifts($name, array $options = []): returnedGifts
+    public function getAvailableGifts(array $options = []): returnedGifts
     {
 
-        $data = compact('name') + $options;
+        $data = $options;
 
         return returnedGifts::create($this->call('getAvailableGifts', $data));
     }
@@ -1552,8 +1585,6 @@ trait method
     public function answerWebAppQuery($web_app_query_id, $result, array $options = []): SentWebAppMessage
     {
 
-        $result = json_encode($result);
-
         $data = compact('web_app_query_id', 'result') + $options;
 
         return SentWebAppMessage::create($this->call('answerWebAppQuery', $data));
@@ -1565,24 +1596,19 @@ trait method
     public function savePreparedInlineMessage($user_id, $result, array $options = []): returnedPreparedInlineMessage
     {
 
-        $result = json_encode($result);
-
         $data = compact('user_id', 'result') + $options;
 
         return returnedPreparedInlineMessage::create($this->call('savePreparedInlineMessage', $data));
     }
 
     /**
-     * @return PreparedKeyboardButton
+     * @return returnedPreparedKeyboardButton
      */
-    public function savePreparedKeyboardButton($user_id, $button, array $options = []): PreparedKeyboardButton
+    public function savePreparedKeyboardButton($user_id, $button, array $options = []): returnedPreparedKeyboardButton
     {
-
-        $result = json_encode($result);
-
         $data = compact('user_id', 'button') + $options;
 
-        return PreparedKeyboardButton::create($this->call('savePreparedKeyboardButton', $data));
+        return returnedPreparedKeyboardButton::create($this->call('savePreparedKeyboardButton', $data));
     }
 
     /**
@@ -1909,11 +1935,9 @@ trait method
      */
     public function answerInlineQuery($inline_query_id, $results, array $options = []): returned
     {
-        $results = json_encode($results);
-
         $data = compact('inline_query_id', 'results') + $options;
 
-        return returned::create($this->call('deleteStickerSet', $data));
+        return returned::create($this->call('answerInlineQuery', $data));
     }
 
     /**
@@ -2042,14 +2066,14 @@ trait method
     }
 
     /**
-     * @return returnedMessage
+     * @return returnedArrayOfGameHighScore
      */
-    public function getGameHighScores($user_id, array $options = []): returnedMessage
+    public function getGameHighScores($user_id, array $options = []): returnedArrayOfGameHighScore
     {
 
         $data = compact('user_id') + $options;
 
-        return returnedMessage::create($this->call('getGameHighScores', $data));
+        return returnedArrayOfGameHighScore::create($this->call('getGameHighScores', $data));
     }
 
 }

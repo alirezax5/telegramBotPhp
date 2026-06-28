@@ -4,33 +4,14 @@
 namespace telegramBotApiPhp\Types;
 
 /**
- * Class returnedChatMember
+ * Class returnedArrayOfChatMember
  * @package telegramBotApiPhp\Types
- * @method bool getOk()
- * @method int getErrorCode()
- * @method string getDescription()
- * @method ChatMember getResult()
- * @method bool issetOk()
- * @method bool issetErrorCode()
- * @method bool issetDescription()
- * @method bool issetResult()
+ * @property bool $ok status
+ * @property int $error_code
+ * @property string $description
+ * @property ChatMember[] $result
  */
-class returnedArrayOfChatMember extends base
+class returnedArrayOfChatMember extends BaseType
 {
-    static protected $map = [
-        'ok' => true,
-        'error_code' => true,
-        'description' => true,
-        'result' => ArrayOfChatMember::class,
-    ];
 
-    protected $Ok;
-    protected $ErrorCode;
-    protected $Description;
-    protected $Result;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

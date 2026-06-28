@@ -5,26 +5,12 @@ namespace telegramBotApiPhp\Types;
 
 /**
  * Class ChatShared
- * @package telegramBotApiPhp\Types
- * @method int getRequestId()
- * @method int getChatId()
- * @method bool issetRequestId()
- * @method bool issetChatId()
+ * This object contains information about a chat that was shared with the bot.
+ *
+ * @property int $request_id Identifier of the request.
+ * @property int $chat_id Identifier of the shared chat.
  */
-class ChatShared extends base
+class ChatShared extends BaseType
 {
-    static protected $map = [
-        'request_id' => true,
-        'chat_id' => true
 
-    ];
-    protected $RequestId;
-    protected $ChatId;
-
-
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

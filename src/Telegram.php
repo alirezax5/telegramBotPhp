@@ -13,9 +13,11 @@ use telegramBotApiPhp\Types\{BaseType,
     ChatJoinRequest,
     ChatMemberUpdated,
     ChosenInlineResult,
+    InlineQuery,
     Message,
     MessageReactionCountUpdated,
     MessageReactionUpdated,
+    PaidMediaPurchased,
     Poll,
     PollAnswer,
     PreCheckoutQuery,
@@ -311,9 +313,9 @@ class Telegram
         return $this->getCachedUpdate('message_reaction_count', MessageReactionCountUpdated::class);
     }
 
-    public function inlineQuery(): ?inlineQuery
+    public function inlineQuery(): ?InlineQuery
     {
-        return $this->getCachedUpdate('inline_query', inlineQuery::class);
+        return $this->getCachedUpdate('inline_query', InlineQuery::class);
     }
 
     public function chosenInlineResult(): ?ChosenInlineResult
@@ -326,9 +328,9 @@ class Telegram
         return $this->getCachedUpdate('shipping_query', ShippingQuery::class);
     }
 
-    public function purchasedPaidMedia(): ?PreCheckoutQuery
+    public function purchasedPaidMedia(): ?PaidMediaPurchased
     {
-        return $this->getCachedUpdate('purchased_paid_media', PreCheckoutQuery::class);
+        return $this->getCachedUpdate('purchased_paid_media', PaidMediaPurchased::class);
     }
     public function poll(): ?Poll
     {

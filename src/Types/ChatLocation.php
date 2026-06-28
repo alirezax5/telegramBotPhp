@@ -5,21 +5,12 @@ namespace telegramBotApiPhp\Types;
 
 /**
  * Class ChatLocation
- * @package telegramBotApiPhp\Types
- * @method Location getLocation()
- * @method string getAddress()
+ * Represents a location to which a chat is connected.
+ *
+ * @property Location $location The location to which the supergroup is connected.
+ * @property string $address Location address; 1-64 characters, defined by the chat owner.
  */
-class ChatLocation
+class ChatLocation extends BaseType
 {
-    static protected $map = [
-        'location' => Location::class,
-        'address' => true,
-    ];
-    protected $Location;
-    protected $Address;
 
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }

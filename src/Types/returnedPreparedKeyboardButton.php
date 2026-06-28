@@ -4,14 +4,14 @@
 namespace telegramBotApiPhp\Types;
 
 /**
- * Class PreparedKeyboardButton
+ * Class returnedPreparedKeyboardButton
  * @package telegramBotApiPhp\Types
  * @property bool $ok status
  * @property int $error_code
  * @property string $description
  * @property PreparedKeyboardButton $result
  */
-class PreparedKeyboardButton extends BaseType
+class returnedPreparedKeyboardButton extends BaseType
 {
 
 }

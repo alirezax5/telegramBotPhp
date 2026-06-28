@@ -5,7 +5,7 @@ namespace telegramBotApiPhp\Types;
 
 /**
  * Class returned
- * @package baleBotPhp\Types
+ * @package telegramBotApiPhp\Types
  * @property bool $ok status
  * @property int $error_code
  * @property string $description

@@ -82,7 +82,7 @@ trait isUpdates
         return $this->checkUpdateExists('pre_checkout_query');
     }
 
-    public function ispPurchasedPaidMedia(): bool
+    public function isPurchasedPaidMedia(): bool
     {
         return $this->checkUpdateExists('purchased_paid_media');
     }
@@ -115,5 +115,10 @@ trait isUpdates
     public function isChatBoost(): bool
     {
         return $this->checkUpdateExists('chat_boost');
+    }
+
+    public function isRemovedChatBoost(): bool
+    {
+        return $this->checkUpdateExists('removed_chat_boost');
     }
 }

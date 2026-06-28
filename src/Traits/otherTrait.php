@@ -307,12 +307,4 @@ trait otherTrait
             . '/'
             . ltrim($path, '/');
     }
-
-    /**
-     * پاک‌سازی کش
-     */
-    public function clearCache(): void
-    {
-        $this->cacheField = [];
-    }
 }

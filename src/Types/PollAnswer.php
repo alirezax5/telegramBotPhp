@@ -5,25 +5,13 @@ namespace telegramBotApiPhp\Types;
 
 /**
  * Class PollAnswer
- * @package telegramBotApiPhp\Types
- * @method string getPollId()
- * @method User getUser()
- * @method  getOptionIds()
+ * This object represents an answer of a user in a non-anonymous poll.
+ *
+ * @property string $poll_id Unique identifier of the poll.
+ * @property User $user The user who changed the answer.
+ * @property int[] $option_ids Zero-based identifiers of chosen answer options.
  */
-class PollAnswer extends base
+class PollAnswer extends BaseType
 {
-    static protected $map = [
-        'poll_id' => true,
-        'user' => User::class,
-        'option_ids' => true,
-    ];
 
-    protected $PollId;
-    protected $User;
-    protected $OptionIds;
-
-    protected function init($key, $value)
-    {
-        $this->$key = $value;
-    }
 }
