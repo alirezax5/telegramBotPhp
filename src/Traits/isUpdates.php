@@ -27,9 +27,9 @@ trait isUpdates
         return $this->checkUpdateExists('edited_channel_post');
     }
 
-    public function isBusinessMessageConnection(): bool
+    public function isBusiness(): bool
     {
-        return $this->checkUpdateExists('business_connection');
+        return $this->checkUpdateExists('business_message');
     }
 
     public function isBusinessMessage(): bool

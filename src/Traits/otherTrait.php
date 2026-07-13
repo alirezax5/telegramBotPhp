@@ -6,9 +6,7 @@ namespace telegramBotApiPhp\Traits;
 
 trait otherTrait
 {
-    /**
-     * دریافت مقدار کش‌شده یا محاسبه آن
-     */
+
     protected function getCachedValue(string $key, callable $callback): mixed
     {
         if (array_key_exists($key, $this->cacheField ?? [])) {
@@ -18,9 +16,7 @@ trait otherTrait
         return $this->cacheField[$key] = $callback();
     }
 
-    /**
-     * دریافت داده از پیام، callback_query، business_message و غیره
-     */
+
     protected function getMessageData(string $property, mixed $default = null): mixed
     {
         return $this->getCachedValue($property, function () use ($property, $default) {
@@ -69,6 +65,18 @@ trait otherTrait
         });
     }
 
+
+    private function currentMessage(): ?object
+    {
+        return $this->message()
+            ?? $this->editedMessage()
+            ?? $this->channelPost()
+            ?? $this->editedChannelPost()
+            ?? $this->businessMessage()
+            ?? $this->editedBusinessMessage()
+            ?? ($this->callbackQuery()?->message ?: null);
+    }
+
     // ====================== Message Info ======================
 
     public function messageID(): ?int
@@ -83,15 +91,7 @@ trait otherTrait
 
     public function caption(): ?string
     {
-        return $this->getCachedValue('caption', function (): ?string {
-            if ($this->isEditedMessage()) {
-                return $this->editedMessage()?->caption;
-            }
-            if (method_exists($this, 'isEditedChannelPost') && $this->isEditedChannelPost()) {
-                return $this->editedChannelPost()?->caption;
-            }
-            return $this->message()?->caption ?? $this->getMessageData('caption');
-        });
+        return $this->getCachedValue('caption', fn (): ?string => $this->currentMessage()?->caption);
     }
 
     // ====================== User & Chat Info ======================
@@ -162,7 +162,7 @@ trait otherTrait
                 return self::_MEDIA;
             }
 
-            if ($this->message()?->forward_origin ?? $this->getMessageData('forward_origin')) {
+            if ($this->currentMessage()?->forward_origin) {
                 return self::_FORWARD;
             }
 
@@ -173,11 +173,10 @@ trait otherTrait
     public function mediaType(): string
     {
         return $this->getCachedValue('mediaType', function (): string {
-            if (!$this->isMessage()) {
+            $message = $this->currentMessage();
+            if ($message === null) {
                 return self::_TEXT;
             }
-
-            $message = $this->message();
 
             $mediaMap = [
                 'video'       => self::_VIDEO,
@@ -194,7 +193,7 @@ trait otherTrait
             ];
 
             foreach ($mediaMap as $key => $type) {
-                if (!empty($message?->{$key})) {
+                if (!empty($message->{$key})) {
                     return $type;
                 }
             }
@@ -207,104 +206,58 @@ trait otherTrait
 
     public function fileId(): ?string
     {
-        return $this->getCachedValue('fileId', function (): ?string {
-            if (!$this->isMessage()) {
-                return null;
-            }
-
-            $message = $this->message();
-            $types = ['document', 'audio', 'video_note', 'video', 'voice', 'sticker', 'animation'];
-
-            foreach ($types as $type) {
-                if (!empty($message?->{$type})) {
-                    return $message->{$type}->file_id ?? null;
-                }
-            }
-
-            // Photo (largest size)
-            if (!empty($message?->photo)) {
-                return $message->photo[array_key_last($message->photo)]->file_id ?? null;
-            }
-
-            return null;
-        });
+        return $this->getCachedValue('fileId', fn (): ?string => $this->getMediaFileProperty('file_id'));
     }
 
     public function mimeType(): ?string
     {
-        return $this->getCachedValue('mimeType', function (): ?string {
-            if (!$this->isMessage()) {
-                return null;
-            }
-
-            $message = $this->message();
-            $types = ['document', 'audio', 'video_note', 'video', 'voice', 'sticker', 'animation'];
-
-            foreach ($types as $type) {
-                if (!empty($message?->{$type})) {
-                    return $message->{$type}->mime_type ?? null;
-                }
-            }
-
-            if (!empty($message?->photo)) {
-                return $message->photo[array_key_last($message->photo)]->mime_type ?? null;
-            }
-
-            return null;
-        });
+        return $this->getCachedValue('mimeType', fn (): ?string => $this->getMediaFileProperty('mime_type'));
     }
 
     public function fileSize(): ?int
     {
-        return $this->getCachedValue('fileSize', function (): ?int {
-            if (!$this->isMessage()) {
-                return null;
-            }
+        return $this->getCachedValue('fileSize', fn (): ?int => $this->getMediaFileProperty('file_size'));
+    }
 
-            $message = $this->message();
-            $types = ['document', 'audio', 'video_note', 'video', 'voice', 'sticker', 'animation'];
-
-            foreach ($types as $type) {
-                if (!empty($message?->{$type})) {
-                    return $message->{$type}->file_size ?? null;
-                }
-            }
-
-            if (!empty($message?->photo)) {
-                return $message->photo[array_key_last($message->photo)]->file_size ?? null;
-            }
-
+    private function getMediaFileProperty(string $property): mixed
+    {
+        $message = $this->currentMessage();
+        if ($message === null) {
             return null;
-        });
+        }
+
+        $mediaKeys = ['document', 'audio', 'video_note', 'video', 'voice', 'sticker', 'animation'];
+
+        foreach ($mediaKeys as $key) {
+            if (!empty($message->{$key})) {
+                return $message->{$key}->{$property} ?? null;
+            }
+        }
+
+        if (!empty($message->photo)) {
+            return $message->photo[array_key_last($message->photo)]->{$property} ?? null;
+        }
+
+        return null;
     }
 
     // ====================== Utility Methods ======================
 
-    /**
-     * آیا پیام ریپلای شده است؟
-     */
+
     public function isReply(): bool
     {
         return $this->getMessageData('reply_to_message') !== null;
     }
 
-    /**
-     * شناسه پیامی که به آن ریپلای شده
-     */
+
     public function replyToMessageId(): ?int
     {
         return $this->getMessageData('reply_to_message')?->message_id;
     }
 
-    /**
-     * تبدیل path فایل به URL دانلود
-     */
+
     public function pathToUrl(string $path): string
     {
-        return rtrim($this->apiUrl, '/')
-            . '/file/bot'
-            . $this->botToken
-            . '/'
-            . ltrim($path, '/');
+        return $this->getFileUrl($path);
     }
 }

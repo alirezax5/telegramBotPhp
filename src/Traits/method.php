@@ -47,9 +47,7 @@ use telegramBotApiPhp\Types\{returned,
 trait method
 {
 
-    /**
-     * آماده‌سازی داده‌ها برای ارسال به API
-     */
+
     private function prepareBotData(array $data): array
     {
         $jsonFields = [
@@ -241,16 +239,6 @@ trait method
         $data = compact('chat_id', 'from_chat_id', 'message_ids') + $options;
 
         return returnedArrayOfMessageId::create($this->call('copyMessages', $data));
-    }
-
-    /**
-     * @return returnedMessageId
-     */
-    public function copyMessageNonCaption($chat_id, $from_chat_id, int $message_id, array $options = [])
-    {
-        $data = compact('chat_id', 'from_chat_id', 'message_id') + $options;
-
-        return returnedMessageId::create($this->call('copyMessage', $data));
     }
 
     /**

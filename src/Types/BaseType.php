@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace telegramBotApiPhp\Types;
 
 use JsonSerializable;
@@ -10,69 +12,23 @@ abstract class BaseType implements JsonSerializable, IteratorAggregate
 {
     protected array $data = [];
 
+    /**
+     * @param array|object $data Raw data from API (stdClass or array)
+     */
     public function __construct(array|object $data = [])
     {
-        $this->data = $this->normalize($data);
+        if ($data instanceof self) {
+            $this->data = $data->toArray();
+        } elseif (is_object($data)) {
+            $this->data = get_object_vars($data);
+        } else {
+            $this->data = $data;
+        }
     }
 
     public function getIterator(): \Traversable
     {
         return new ArrayIterator($this->data);
-    }
-
-    protected function normalize(array|object $data): array
-    {
-        if ($data instanceof self) {
-            return $data->toArray();
-        }
-
-        if (is_object($data)) {
-            $data = get_object_vars($data);
-        }
-
-        $result = [];
-
-        foreach ($data as $key => $value) {
-            if ($value instanceof self) {
-                $result[$key] = $value;
-                continue;
-            }
-
-            if (is_array($value)) {
-                if ($this->isAssoc($value)) {
-                    $result[$key] = new static($value);
-                } else {
-                    $items = [];
-                    foreach ($value as $item) {
-                        if ($item instanceof self) {
-                            $items[] = $item;
-                        } elseif (is_array($item)) {
-                            $items[] = new static($item);
-                        } elseif (is_object($item)) {
-                            $items[] = new static(get_object_vars($item));
-                        } else {
-                            $items[] = $item;
-                        }
-                    }
-                    $result[$key] = $items;
-                }
-                continue;
-            }
-
-            if (is_object($value)) {
-                $result[$key] = new static(get_object_vars($value));
-                continue;
-            }
-
-            $result[$key] = $value;
-        }
-
-        return $result;
-    }
-
-    protected function isAssoc(array $array): bool
-    {
-        return !array_is_list($array);
     }
 
     public function __get(string $name): mixed
@@ -87,12 +43,27 @@ abstract class BaseType implements JsonSerializable, IteratorAggregate
 
     public function toArray(): array
     {
-        return $this->data;
+        $result = [];
+        foreach ($this->data as $key => $value) {
+            if ($value instanceof self) {
+                $result[$key] = $value->toArray();
+            } elseif (is_array($value)) {
+                $result[$key] = array_map(
+                    fn($item) => $item instanceof self ? $item->toArray() : $item,
+                    $value
+                );
+            } elseif (is_object($value)) {
+                $result[$key] = get_object_vars($value);
+            } else {
+                $result[$key] = $value;
+            }
+        }
+        return $result;
     }
 
     public function jsonSerialize(): array
     {
-        return $this->data;
+        return $this->toArray();
     }
 
     public static function create(array|object $data): static

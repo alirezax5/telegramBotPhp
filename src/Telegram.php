@@ -104,7 +104,7 @@ class Telegram
     public function setToken(string $token): self
     {
         $this->botToken = $token;
-        $this->urlFile = str_replace('{token}', $token, $this->fileUrlTemplate);
+        $this->urlFile = str_replace(['{url}', '{token}'], [$this->apiUrl, $token], $this->fileUrlTemplate);
         $this->clearCache();
         return $this;
     }
