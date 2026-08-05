@@ -37,6 +37,8 @@ class Telegram
     // Retry Settings
     private int $maxRetries = 3;
     private int $retryDelayMs = 500;
+    private int $curlTimeout = 30;
+    private ?\CurlHandle $curlHandle = null;
 
     // Chat & Message Types
     public const PRIVATE = 'private';
@@ -77,7 +79,8 @@ class Telegram
         string $apiUrl = self::API_BASE_URL,
         string $fileUrlTemplate = self::DEFAULT_FILE_URL_TEMPLATE,
         int    $maxRetries = 3,
-        int    $retryDelayMs = 500
+        int    $retryDelayMs = 500,
+        int    $curlTimeout = 30
     )
     {
         $this->apiUrl = rtrim($apiUrl, '/');
@@ -86,6 +89,8 @@ class Telegram
 
         $this->maxRetries = $maxRetries;
         $this->retryDelayMs = $retryDelayMs;
+        $this->curlTimeout = max(5, $curlTimeout);
+        $this->curlHandle = null;
 
         $this->setToken($token);
         $this->initialize();
@@ -149,36 +154,34 @@ class Telegram
     {
         $url = $this->buildUrl($method);
         $attempt = 0;
+        $curlError = '';
+        $httpCode = 0;
+        $retryAfter = 0;
+        $handle = $this->getCurlHandle();
 
         while ($attempt <= $this->maxRetries) {
-            $ch = curl_init();
+            curl_setopt($handle, CURLOPT_URL, $url);
+            curl_setopt($handle, CURLOPT_POSTFIELDS, $data);
 
-            $options = [
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $data,
-                CURLOPT_CONNECTTIMEOUT => 5,
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_SSL_VERIFYPEER => true,
-                CURLOPT_USERAGENT => 'Telegram Bot API Client/2.0 (PHP)',
-                CURLOPT_HTTPHEADER => ['Accept: application/json'],
-            ];
-
-            if ($isUpload) {
-                $options[CURLOPT_SAFE_UPLOAD] = true;
+            // Long polling: let the request outlive the curl timeout so we don't cut
+            // the connection before Telegram answers (getUpdates may hold up to 50-60s).
+            if ($method === 'getUpdates' && isset($data['timeout']) && $data['timeout'] !== null) {
+                curl_setopt($handle, CURLOPT_TIMEOUT, (int) $data['timeout'] + 5);
             }
 
-            curl_setopt_array($ch, $options);
-
-            $response = curl_exec($ch);
-            $curlError = curl_error($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            $response = curl_exec($handle);
+            $curlError = (string) curl_error($handle);
+            $httpCode = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
 
             if ($response !== false) {
                 $decoded = json_decode($response, false);
                 if (json_last_error() === JSON_ERROR_NONE) {
+                    $retryAfter = $this->extractRetryAfter($decoded);
+                    if ($retryAfter > 0 && $this->shouldRetry($curlError, $httpCode, $attempt)) {
+                        usleep($retryAfter * 1_000_000);
+                        $attempt++;
+                        continue;
+                    }
                     return $decoded;
                 }
             }
@@ -195,9 +198,55 @@ class Telegram
         return (object)[
             'ok' => false,
             'error' => $curlError ?: 'API Error after ' . $attempt . ' attempts',
-            'http_code' => $httpCode ?? 0,
+            'http_code' => $httpCode,
             'attempts' => $attempt,
         ];
+    }
+
+    private function extractRetryAfter(\stdClass $decoded): int
+    {
+        if (isset($decoded->parameters->retry_after) && is_numeric($decoded->parameters->retry_after)) {
+            return (int) $decoded->parameters->retry_after;
+        }
+
+        return 0;
+    }
+
+    private function getCurlHandle(): \CurlHandle
+    {
+        if ($this->curlHandle instanceof \CurlHandle) {
+            return $this->curlHandle;
+        }
+
+        $handle = curl_init();
+
+        $options = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => $this->curlTimeout,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_USERAGENT => 'Telegram Bot API Client/2.0 (PHP)',
+            CURLOPT_HTTPHEADER => ['Accept: application/json'],
+            CURLOPT_SAFE_UPLOAD => true,
+        ];
+
+        curl_setopt_array($handle, $options);
+
+        return $this->curlHandle = $handle;
+    }
+
+    public function close(): void
+    {
+        if ($this->curlHandle instanceof \CurlHandle) {
+            curl_close($this->curlHandle);
+            $this->curlHandle = null;
+        }
+    }
+
+    public function __destruct()
+    {
+        $this->close();
     }
 
     private function shouldRetry(string $curlError, int $httpCode, int $attempt): bool

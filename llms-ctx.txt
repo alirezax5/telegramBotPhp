@@ -1,0 +1,54 @@
+# telegramBotPhp — Context
+
+Lightweight PHP 8.1+ Telegram Bot API wrapper. Zero runtime dependencies. 186 API methods, 199 types.
+
+## Quick facts
+
+- Namespace: `telegramBotApiPhp\`
+- Root class: `Telegram` (src/Telegram.php)
+- All methods are public on `Telegram` via `method` trait aggregator
+- Methods return typed `returned*` objects (`BaseType` subclass with `__get` lazy access)
+- Data: `stdClass` decoded from API, wrapped lazily
+- Retry: exponential backoff + 429 `retry_after` honored; cURL handle reused; `close()`/`__destruct` frees
+- Long polling: `getUpdates($offset, $limit, $timeout)` — cURL timeout auto-raised to timeout+5
+- Token stack: `switchToken()`, `restoreToken()`, `clearTokenStack()`
+- Convenience: `text()`, `chatId()`, `fromId()`, `mediaType()`, `msgType()`, `fileId()`, `chatType()`, ...
+- Update type checkers: `isMessage()`, `isCallbackQuery()`, `isPoll()`, `isMedia()` (photo/video/audio/...), `isPrivate()`, ...
+
+## Method counts per trait
+
+| Trait | Methods |
+|-------|---------|
+| Updates | 7 |
+| Messages | 45 |
+| ChatAdministration | 51 |
+| Stickers | 16 |
+| PaymentsAndGames | 11 |
+| Business | 36 |
+| BotSettings | 20 |
+
+**Total: 186**
+
+## Notable recent additions
+
+- Rich messages: `sendRichMessage()`, `sendRichMessageDraft()`, `InputRichMessage` type
+- Ephemeral messages: `deleteEphemeralMessage()`, `editEphemeralMessageText/Caption/Media/ReplyMarkup()`
+- Join requests: `answerChatJoinRequestQuery()`, `sendChatJoinRequestWebApp()`
+- `getChatMember()`, `getMyShortDescription()`
+
+## Install
+
+```bash
+composer require alirezax5/telegram-bot-php
+```
+
+## Example
+
+```php
+use telegramBotApiPhp\Telegram;
+$bot = new Telegram($token);
+$bot->setInputData($update);
+if ($bot->isMessage() && $bot->text() === '/start') {
+    $bot->sendMessage($bot->chatId(), 'Hi!');
+}
+```

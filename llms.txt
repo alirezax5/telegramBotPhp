@@ -1,0 +1,65 @@
+# telegramBotPhp
+
+Lightweight PHP 8.1+ wrapper for the Telegram Bot API — zero runtime dependencies, 186 bot methods, 199 typed response/entity classes.
+
+- Full coverage of every current Telegram Bot API method (186 methods, 199 types).
+- Zero runtime dependencies: uses only PHP + cURL.
+- Typed responses via `BaseType` subclass with lazy `__get` + `toArray()`.
+- Built-in HTTP retry with exponential backoff and 429 `retry_after` handling.
+- Long-polling safe: cURL timeout auto-raised to `getUpdates(timeout)+5`.
+- Reusable cURL handle for polling efficiency.
+- Token stack for multi-bot switching.
+- Convenience getters: `text()`, `chatId()`, `mediaType()`, `fromId()`, etc.
+- PSR-4 autoloaded under `telegramBotApiPhp\` namespace.
+
+## Files
+
+- src/Telegram.php — core class: HTTP client, update parser, token stack, retry, caching
+- src/Traits/Updates.php — polling + webhook methods (7)
+- src/Traits/Messages.php — messaging methods: send/edit/ephemeral/rich (45)
+- src/Traits/ChatAdministration.php — chat/admin/forum/callback (51)
+- src/Traits/Stickers.php — sticker set management (16)
+- src/Traits/PaymentsAndGames.php — payments/stars/games (11)
+- src/Traits/Business.php — business/managed-bot/story/inline/user-verify (36)
+- src/Traits/BotSettings.php — bot profile/commands/menu (20)
+- src/Traits/isUpdates.php — boolean update type checkers (23)
+- src/Traits/isChatTypes.php — boolean chat type checkers (4)
+- src/Traits/isMedia.php — boolean media type checkers (12)
+- src/Traits/otherTrait.php — convenience getters (19)
+- src/Traits/method.php — aggregator trait, call(), prepareBotData()
+- src/Types/BaseType.php — abstract type base
+- src/Types/Message.php — Message entity
+- src/Types/User.php — User entity
+- src/Types/Chat.php — Chat entity
+- src/Types/InputRichMessage.php — rich message input type
+- src/Types/returned.php — generic response
+- src/Types/returnedMessage.php — message response
+- src/Types/returnedChatMember.php — chat member response
+- README.md — project overview
+- docs/architecture/methods.md — full method listing grouped by trait
+- docs/architecture/overview.md — project overview and goals
+- docs/architecture/telegram-class.md — core class reference
+- docs/architecture/type-system.md — type system docs
+- docs/guides/webhook-vs-polling.md — delivery mode guide
+- docs/guides/retry-and-resilience.md — retry strategy docs
+
+## Structure
+
+src/
+├── Telegram.php          — core class (DI container, HTTP client, update parser)
+├── Traits/
+│   ├── method.php        — aggregator trait
+│   ├── Updates.php       — getUpdates, setWebhook, getMe, ...
+│   ├── Messages.php      — 45 messaging methods
+│   ├── ChatAdministration.php — 51 chat/admin methods
+│   ├── Stickers.php      — 16 sticker methods
+│   ├── PaymentsAndGames.php — 11 payments/games methods
+│   ├── Business.php      — 36 business methods
+│   ├── BotSettings.php   — 20 bot settings methods
+│   ├── isUpdates.php     — boolean update checkers
+│   ├── isChatTypes.php   — boolean chat checkers
+│   ├── isMedia.php       — boolean media checkers
+│   └── otherTrait.php    — convenience getters
+└── Types/
+    ├── BaseType.php      — abstract type base
+    └── *.php             — 199 response/entity types
