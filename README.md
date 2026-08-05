@@ -66,25 +66,15 @@ src/
 `Telegram` pulls in all domain traits via the `method` aggregator trait.
 All API methods return a typed `returned*` (response) object built by `BaseType::create()`.
 
-## Requirements
-
-- PHP >= 8.1
-- `ext-curl`, `ext-json`, Composer
-
-## Installation
-
-```bash
-composer require alirezax5/telegram-bot-php
-```
-
 ## License
 
 MIT
 
 ## Documentation
-- [architecture/overview.md](architecture/overview.md) — full architecture
-- [architecture/folder-structure.md](architecture/folder-structure.md)
-- [architecture/methods.md](architecture/methods.md) — the 186 methods grouped by trait
-- [architecture/telegram-class.md](architecture/telegram-class.md) — core class reference
-- [guides/webhook-vs-polling.md](guides/webhook-vs-polling.md)
-- [guides/retry-and-resilience.md](guides/retry-and-resilience.md)
+- [architecture/overview.md](docs/architecture/overview.md) — full architecture
+- [architecture/folder-structure.md](docs/architecture/folder-structure.md)
+- [architecture/methods.md](docs/architecture/methods.md) — the 186 methods grouped by trait
+- [architecture/telegram-class.md](docs/architecture/telegram-class.md) — core class reference
+- [architecture/type-system.md](docs/architecture/type-system.md) — type system & returned*
+- [guides/webhook-vs-polling.md](docs/guides/webhook-vs-polling.md)
+- [guides/retry-and-resilience.md](docs/guides/retry-and-resilience.md)
