@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace telegramBotApiPhp\Traits;
 
 use telegramBotApiPhp\Types\{
-    SentWebAppMessage, returnedBotAccessSettings, returnedBusinessConnection, returnedGifts, returnedOwnedGifts, returnedPreparedInlineMessage, returnedPreparedKeyboardButton, returnedStarAmount, returnedStory, returnedString,
+    SentWebAppMessage, returnedBotAccessSettings, returnedBusinessConnection, returnedGifts, returnedOwnedGifts, returnedPreparedInlineMessage, returnedPreparedKeyboardButton, returnedStarAmount, returnedStory, returnedString,returned
 };
 
 trait Business

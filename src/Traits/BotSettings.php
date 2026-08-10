@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace telegramBotApiPhp\Traits;
 
 use telegramBotApiPhp\Types\{
-    returnedArrayBotCommand, returnedBotDescription, returnedBotName, returnedBotShortDescription, returnedChatAdministratorRights, returnedFile, returnedMenuButton, returnedUserProfileAudios, returnedUserProfilePhotos,
+    returnedArrayBotCommand, returnedBotDescription, returnedBotName, returnedBotShortDescription, returnedChatAdministratorRights, returnedFile, returnedMenuButton, returnedUserProfileAudios, returnedUserProfilePhotos,returned
 };
 
 trait BotSettings

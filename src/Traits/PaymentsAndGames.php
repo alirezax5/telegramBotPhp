@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace telegramBotApiPhp\Traits;
 
 use telegramBotApiPhp\Types\{
-    returnedArrayOfGameHighScore, returnedMessage, returnedStarAmount, returnedStarTransaction, returnedString,
+    returnedArrayOfGameHighScore, returnedMessage, returnedStarAmount, returnedStarTransaction, returnedString,returned
 };
 
 trait PaymentsAndGames

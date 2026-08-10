@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace telegramBotApiPhp\Traits;
 
 use telegramBotApiPhp\Types\{
-    returnedUser, returnedWebhookInfo,
+    returnedUser, returnedWebhookInfo,returned
 };
 
 trait Updates

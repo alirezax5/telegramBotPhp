@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace telegramBotApiPhp\Traits;
 
 use telegramBotApiPhp\Types\{
-    returnedArrayOfMessageId, returnedMessage, returnedMessageId, returnedPoll,
+    returnedArrayOfMessageId, returnedMessage, returnedMessageId, returnedPoll,returned
 };
 
 trait Messages

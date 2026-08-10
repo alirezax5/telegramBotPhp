@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace telegramBotApiPhp\Traits;
 
 use telegramBotApiPhp\Types\{
-    returnedArrayOfSticker, returnedFile, returnedMessage, returnedStickerSet,
+    returnedArrayOfSticker, returnedFile, returnedMessage, returnedStickerSet,returned
 };
 
 trait Stickers
