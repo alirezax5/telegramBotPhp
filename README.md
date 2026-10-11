@@ -1,6 +1,10 @@
 # telegramBotPhp
 
+**English** · [فارسی](README.fa.md) · [中文](README.zh.md) · [Русский](README.ru.md) · [Français](README.fr.md) · [Português](README.pt.md) · [العربية](README.ar.md)
+
 Lightweight PHP 8.1+ wrapper for the **Telegram Bot API** — zero runtime dependencies, full coverage of every current API method (186 bot methods) and every response/entity type (199 types).
+
+Current release: **3.3.0** — see [CHANGELOG.md](CHANGELOG.md) (fixes a broken `getChatMember()` in 3.2.1, completes JSON serialization of nested parameters, strips nulls, fixes a cURL timeout leak; multi-bot flows verified live with two real bots).
 
 ## Requirements
 
@@ -43,11 +47,30 @@ if ($bot->isMessage()) {
 }
 ```
 
+## Multi-bot (two bots in one process)
+
+```php
+// Pattern 1 — independent instances (e.g. membership check via bot #2)
+$bot2 = new Telegram($_ENV['BOT2_TOKEN']);
+$member = $bot2->getChatMember('@mychannel', $userId);
+$status = $member->result->status ?? 'left';      // member | administrator | creator | left | kicked
+
+// Pattern 2 — token stack: bot #1 sends AS bot #2
+$bot->switchToken($_ENV['BOT2_TOKEN']);
+$bot->sendMessage($chatId, 'Sent as bot #2, from the bot #1 process');
+$bot->restoreToken();
+
+// Raw API access (full stdClass response)
+$me = $bot->callRaw('getMe');
+```
+
+Full guide: [docs/guides/multi-bot.md](docs/en/guides/multi-bot.md).
+
 ## Architecture
 
 ```
 src/
-├── Telegram.php          # Core class — DI/container, HTTP client, update parser, token stack, caching, retry
+├── Telegram.php          # Core class — HTTP client, update parser, token stack, caching, retry
 ├── Traits/
 │   ├── Updates.php            # polling + webhook methods (getUpdates, setWebhook, getMe, ...)
 │   ├── Messages.php          # 45 messaging methods (send*, edit*, ephemeral, rich)
@@ -71,10 +94,13 @@ All API methods return a typed `returned*` (response) object built by `BaseType:
 MIT
 
 ## Documentation
-- [architecture/overview.md](docs/architecture/overview.md) — full architecture
-- [architecture/folder-structure.md](docs/architecture/folder-structure.md)
-- [architecture/methods.md](docs/architecture/methods.md) — the 186 methods grouped by trait
-- [architecture/telegram-class.md](docs/architecture/telegram-class.md) — core class reference
-- [architecture/type-system.md](docs/architecture/type-system.md) — type system & returned*
-- [guides/webhook-vs-polling.md](docs/guides/webhook-vs-polling.md)
-- [guides/retry-and-resilience.md](docs/guides/retry-and-resilience.md)
+- [architecture/overview.md](docs/en/architecture/overview.md) — full architecture
+- [architecture/folder-structure.md](docs/en/architecture/folder-structure.md)
+- [architecture/methods.md](docs/en/architecture/methods.md) — the 186 methods grouped by trait
+- [architecture/telegram-class.md](docs/en/architecture/telegram-class.md) — core class reference
+- [architecture/type-system.md](docs/en/architecture/type-system.md) — type system & returned*
+- [guides/webhook-vs-polling.md](docs/en/guides/webhook-vs-polling.md)
+- [guides/retry-and-resilience.md](docs/en/guides/retry-and-resilience.md) — retry strategy
+- [guides/multi-bot.md](docs/en/guides/multi-bot.md) — two bots in one process (token stack, raw calls)
+- [CHANGELOG.md](CHANGELOG.md) — release history
+- [README.fa.md](README.fa.md) — مستندات فارسی (RTL)

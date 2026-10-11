@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace telegramBotApiPhp\Traits;
 
 use telegramBotApiPhp\Types\{
-    SentGuestMessage, returnedArrayOfChatMember, returnedArrayOfSticker, returnedChat, returnedChatInviteLink, returnedForumTopic, returnedInt, returnedMessage, returnedSentGuestMessage, returnedString, returnedUserChatBoosts,returned
+    SentGuestMessage, returnedArrayOfChatMember, returnedArrayOfSticker, returnedChat, returnedChatInviteLink, returnedChatMember, returnedForumTopic, returnedInt, returnedMessage, returnedSentGuestMessage, returnedString, returnedUserChatBoosts,returned
 };
 
 trait ChatAdministration

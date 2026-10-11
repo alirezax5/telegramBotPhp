@@ -30,13 +30,41 @@ trait method
 
     /**
      * JSON-encode array fields and prepare file uploads.
+     *
+     * The Telegram Bot API requires nested objects/arrays to arrive as
+     * JSON-serialized strings. Every API parameter that accepts such a
+     * nested value must be listed in $jsonFields, otherwise the raw PHP
+     * array is sent and Telegram answers "Bad Request: can't parse ...".
      */
     private function prepareBotData(array $data): array
     {
         $jsonFields = [
-            'reply_markup', 'prices', 'options', 'commands', 'errors',
-            'accepted_gift_types', 'permissions', 'result', 'checklist',
-            'content', 'button', 'rich_message',
+            // Keyboard / markup (file-bearing 'media'/'thumbnail' live in prepareMediaForUpload)
+            'reply_markup',
+            // Commerce
+            'prices', 'suggested_tip_amounts',
+            // Polls
+            'options', 'explanation_entities',
+            // Bot settings / profile
+            'commands', 'errors', 'accepted_gift_types', 'rights',
+            // Chat administration
+            'permissions', 'chat_administrator_rights',
+            // Inline & web apps
+            'result', 'results', 'content', 'button', 'rich_message',
+            // Checklists (business)
+            'checklist',
+            // Stickers (file-bearing 'stickers' list is handled in prepareMediaForUpload)
+            'emoji_list', 'keywords', 'custom_emoji_ids', 'mask_position',
+            // Reactions
+            'reaction',
+            // Bulk message operations
+            'message_ids',
+            // Updates & webhooks
+            'allowed_updates',
+            // Text formatting
+            'entities', 'caption_entities', 'text_entities',
+            // Link preview & reply targeting
+            'link_preview_options', 'reply_parameters',
         ];
 
         foreach ($jsonFields as $field) {
@@ -50,7 +78,10 @@ trait method
 
         $data = $this->prepareMediaForUpload($data);
 
-        return $data;
+        // Drop null values so Telegram never receives empty parameters —
+        // nullable compact()'ed arguments (e.g. getUpdates timeout) and
+        // optional nulls (editMessageReplyMarkup) must be omitted entirely.
+        return array_filter($data, static fn ($v) => $v !== null);
     }
 
     /**
@@ -83,6 +114,16 @@ trait method
             } else {
                 $data['media'] = $this->prepareMediaGroup($data['media']);
             }
+        }
+
+        if (isset($data['stickers']) && is_array($data['stickers'])) {
+            foreach ($data['stickers'] as &$item) {
+                if (is_array($item) && isset($item['sticker'])) {
+                    $item['sticker'] = $this->prepareFileInput($item['sticker']);
+                }
+            }
+            unset($item);
+            $data['stickers'] = json_encode($data['stickers'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         return $data;

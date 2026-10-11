@@ -1,16 +1,37 @@
 # telegramBotPhp
 
-Lightweight PHP 8.1+ wrapper for the Telegram Bot API — zero runtime dependencies, 186 bot methods, 199 typed response/entity classes.
+Lightweight PHP 8.1+ wrapper for the Telegram Bot API — zero runtime dependencies, 186 bot methods, 199 typed response/entity classes. Current release: 3.3.0.
 
 - Full coverage of every current Telegram Bot API method (186 methods, 199 types).
 - Zero runtime dependencies: uses only PHP + cURL.
 - Typed responses via `BaseType` subclass with lazy `__get` + `toArray()`.
 - Built-in HTTP retry with exponential backoff and 429 `retry_after` handling.
-- Long-polling safe: cURL timeout auto-raised to `getUpdates(timeout)+5`.
+- Long-polling safe: cURL timeout auto-raised to `getUpdates(timeout)+5`, reset per call (3.3.0).
 - Reusable cURL handle for polling efficiency.
-- Token stack for multi-bot switching.
+- Token stack for multi-bot switching: `switchToken()`, `restoreToken()`, `clearTokenStack()`, `getTokenStackCount()`.
+- Raw API access: `callRaw($method, $data)` returns the full decoded stdClass response.
+- Nested API parameters are auto-JSON-encoded (`reply_markup`, `prices`, `options`, `commands`, `errors`, `permissions`, `result(s)`, `checklist`, `message_ids`, `allowed_updates`, `entities`, `caption_entities`, `text_entities`, `explanation_entities`, `reaction`, `emoji_list`, `keywords`, `custom_emoji_ids`, `mask_position`, `stickers`, `suggested_tip_amounts`, `rights`, `chat_administrator_rights`, `link_preview_options`, `reply_parameters`, ...).
+- Null parameters are stripped from every payload; local file paths are converted to CURLFile before JSON encoding (media, sticker, stickers, thumbnail).
 - Convenience getters: `text()`, `chatId()`, `mediaType()`, `fromId()`, etc.
 - PSR-4 autoloaded under `telegramBotApiPhp\` namespace.
+
+## 3.3.0 fixes (do not regress)
+
+- `getChatMember()` was broken in 3.2.1 (missing `returnedChatMember` import in ChatAdministration.php) — fixed.
+- `forwardMessages`/`copyMessages`/`deleteMessages` (`message_ids`), `answerInlineQuery` (`results`), `getUpdates`/`setWebhook` (`allowed_updates`), `setMessageReaction` (`reaction`) now JSON-encode their array parameters — raw PHP arrays caused "Bad Request: can't parse".
+- File-bearing fields are owned by `prepareMediaForUpload()` and must never be added to the jsonFields list (`media`, `thumbnail`, `sticker`, `stickers`, `photo`, ...).
+- Persistent cURL handle: `CURLOPT_TIMEOUT` resets to `curlTimeout` on every call before long-poll raises it.
+
+## Multi-bot
+
+- Pattern 1: independent `new Telegram($token)` instances — full isolation (own handle/cache/identity). Use for constant dual-bot operation, e.g. membership checks via bot #2's token.
+- Pattern 2: token stack on one instance — `switchToken($t2); ...; restoreToken()` (LIFO). Use for bracketed excursions; always restore in `finally`.
+- `callRaw($method, $data)` for diagnostics/recent methods.
+- One webhook file can serve many bots: `secret_token` routing via the `X-Telegram-Bot-Api-Secret-Token` header (per-bot secret → token registry; token never in a URL; the secret doubles as the inbound authenticity check, 403 otherwise). Verified live 2026-10-11: two real bots, one file, 7/7 correct-identity deliveries.
+- Framework integration: TelegramBase `BotManager` + `BOT_EXTRA_BOTS="name:token,..."` env; guard `has($name)` before `get($name)` (unknown names fall back to the MAIN bot silently).
+- Verified live 2026-10-11 with two real bots: identity/isolation/cross-send/getChatMember/token-stack all PASS; full suite 5/5 in 393 ms.
+
+- Documentation is multilingual: `docs/en/` (canonical) with `architecture/` and `guides/` subfolders, plus complete sets in `docs/fa/`, `docs/zh/`, `docs/ru/`, `docs/fr/`, `docs/pt/`, `docs/ar/` — language hub at docs/README.md; per-language READMEs (README.md, README.fa.md, README.zh.md, README.ru.md, README.fr.md, README.pt.md, README.ar.md).
 
 ## Files
 
@@ -26,7 +47,7 @@ Lightweight PHP 8.1+ wrapper for the Telegram Bot API — zero runtime dependenc
 - src/Traits/isChatTypes.php — boolean chat type checkers (4)
 - src/Traits/isMedia.php — boolean media type checkers (12)
 - src/Traits/otherTrait.php — convenience getters (19)
-- src/Traits/method.php — aggregator trait, call(), prepareBotData()
+- src/Traits/method.php — aggregator trait, call(), callRaw(), prepareBotData()
 - src/Types/BaseType.php — abstract type base
 - src/Types/Message.php — Message entity
 - src/Types/User.php — User entity
@@ -35,20 +56,22 @@ Lightweight PHP 8.1+ wrapper for the Telegram Bot API — zero runtime dependenc
 - src/Types/returned.php — generic response
 - src/Types/returnedMessage.php — message response
 - src/Types/returnedChatMember.php — chat member response
-- README.md — project overview
-- docs/architecture/methods.md — full method listing grouped by trait
-- docs/architecture/overview.md — project overview and goals
-- docs/architecture/telegram-class.md — core class reference
-- docs/architecture/type-system.md — type system docs
-- docs/guides/webhook-vs-polling.md — delivery mode guide
-- docs/guides/retry-and-resilience.md — retry strategy docs
+- CHANGELOG.md — release history (3.3.0: getChatMember fix, JSON params completion, null-strip, timeout reset; live two-bot verification)
+- README.fa.md — Persian (RTL) documentation mirror
+- docs/en/architecture/methods.md — full method listing grouped by trait
+- docs/en/architecture/overview.md — project overview and goals
+- docs/en/architecture/telegram-class.md — core class reference
+- docs/en/architecture/type-system.md — type system docs
+- docs/en/guides/webhook-vs-polling.md — delivery mode guide
+- docs/en/guides/retry-and-resilience.md — retry strategy docs
+- docs/en/guides/multi-bot.md — two bots in one process (patterns, pitfalls, live evidence)
 
 ## Structure
 
 src/
-├── Telegram.php          — core class (DI container, HTTP client, update parser)
+├── Telegram.php          — core class (HTTP client, update parser, token stack, retry)
 ├── Traits/
-│   ├── method.php        — aggregator trait
+│   ├── method.php        — aggregator trait (+ callRaw, prepareBotData)
 │   ├── Updates.php       — getUpdates, setWebhook, getMe, ...
 │   ├── Messages.php      — 45 messaging methods
 │   ├── ChatAdministration.php — 51 chat/admin methods

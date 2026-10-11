@@ -1,54 +1,768 @@
-# telegramBotPhp — Context
+telegramBotPhp — flattened LLM context
 
-Lightweight PHP 8.1+ Telegram Bot API wrapper. Zero runtime dependencies. 186 API methods, 199 types.
 
-## Quick facts
+======================================================================
+SECTION: PROJECT  (README.md)
+======================================================================
 
-- Namespace: `telegramBotApiPhp\`
-- Root class: `Telegram` (src/Telegram.php)
-- All methods are public on `Telegram` via `method` trait aggregator
-- Methods return typed `returned*` objects (`BaseType` subclass with `__get` lazy access)
-- Data: `stdClass` decoded from API, wrapped lazily
-- Retry: exponential backoff + 429 `retry_after` honored; cURL handle reused; `close()`/`__destruct` frees
-- Long polling: `getUpdates($offset, $limit, $timeout)` — cURL timeout auto-raised to timeout+5
-- Token stack: `switchToken()`, `restoreToken()`, `clearTokenStack()`
-- Convenience: `text()`, `chatId()`, `fromId()`, `mediaType()`, `msgType()`, `fileId()`, `chatType()`, ...
-- Update type checkers: `isMessage()`, `isCallbackQuery()`, `isPoll()`, `isMedia()` (photo/video/audio/...), `isPrivate()`, ...
+# telegramBotPhp
 
-## Method counts per trait
+**English** · [فارسی](README.fa.md) · [中文](README.zh.md) · [Русский](README.ru.md) · [Français](README.fr.md) · [Português](README.pt.md) · [العربية](README.ar.md)
 
-| Trait | Methods |
-|-------|---------|
-| Updates | 7 |
-| Messages | 45 |
-| ChatAdministration | 51 |
-| Stickers | 16 |
-| PaymentsAndGames | 11 |
-| Business | 36 |
-| BotSettings | 20 |
+Lightweight PHP 8.1+ wrapper for the **Telegram Bot API** — zero runtime dependencies, full coverage of every current API method (186 bot methods) and every response/entity type (199 types).
 
-**Total: 186**
+Current release: **3.3.0** — see [CHANGELOG.md](CHANGELOG.md) (fixes a broken `getChatMember()` in 3.2.1, completes JSON serialization of nested parameters, strips nulls, fixes a cURL timeout leak; multi-bot flows verified live with two real bots).
 
-## Notable recent additions
+## Requirements
 
-- Rich messages: `sendRichMessage()`, `sendRichMessageDraft()`, `InputRichMessage` type
-- Ephemeral messages: `deleteEphemeralMessage()`, `editEphemeralMessageText/Caption/Media/ReplyMarkup()`
-- Join requests: `answerChatJoinRequestQuery()`, `sendChatJoinRequestWebApp()`
-- `getChatMember()`, `getMyShortDescription()`
+- PHP >= 8.1
+- cURL extension (`ext-curl`)
+- JSON extension (`ext-json`)
+- Composer
 
-## Install
+## Installation
 
 ```bash
 composer require alirezax5/telegram-bot-php
 ```
 
-## Example
+## Quick Start
+
+```php
+require 'vendor/autoload.php';
+
+use telegramBotApiPhp\Telegram;
+
+// Long polling
+$bot = new Telegram($_ENV['TELEGRAM_BOT_TOKEN']);
+
+$updates = $bot->getUpdates(0, 100, 50);       // offset, limit, long-poll timeout (s)
+foreach ($updates->result as $u) {
+    $bot->setInputData($u);
+    $chatId = $bot->chatId();
+    $text   = $bot->text();
+
+    if ($text === '/start') {
+        $bot->sendMessage($chatId, 'Welcome!');
+    }
+}
+
+// Webhook mode
+$update = $bot->getInputData();                   // decodes php://input
+if ($bot->isMessage()) {
+    $bot->sendMessage($chatId, $bot->text());
+}
+```
+
+## Multi-bot (two bots in one process)
+
+```php
+// Pattern 1 — independent instances (e.g. membership check via bot #2)
+$bot2 = new Telegram($_ENV['BOT2_TOKEN']);
+$member = $bot2->getChatMember('@mychannel', $userId);
+$status = $member->result->status ?? 'left';      // member | administrator | creator | left | kicked
+
+// Pattern 2 — token stack: bot #1 sends AS bot #2
+$bot->switchToken($_ENV['BOT2_TOKEN']);
+$bot->sendMessage($chatId, 'Sent as bot #2, from the bot #1 process');
+$bot->restoreToken();
+
+// Raw API access (full stdClass response)
+$me = $bot->callRaw('getMe');
+```
+
+Full guide: [docs/guides/multi-bot.md](docs/en/guides/multi-bot.md).
+
+## Architecture
+
+```
+src/
+├── Telegram.php          # Core class — HTTP client, update parser, token stack, caching, retry
+├── Traits/
+│   ├── Updates.php            # polling + webhook methods (getUpdates, setWebhook, getMe, ...)
+│   ├── Messages.php          # 45 messaging methods (send*, edit*, ephemeral, rich)
+│   ├── ChatAdministration.php# 51 chat/admin/forum methods
+│   ├── Stickers.php          # 16 sticker-set methods
+│   ├── PaymentsAndGames.php  # 11 payments/stars/games methods
+│   ├── Business.php          # 36 business/managed-bot/story/inline/user-verify methods
+│   ├── BotSettings.php       # 20 bot-profile/commands/menu methods
+│   ├── isUpdates.php         # Boolean checkers for update types (23)
+│   ├── isChatTypes.php       # Boolean checkers for chat types
+│   ├── isMedia.php           # Boolean checkers for media types
+│   └── otherTrait.php        # Convenience getters (messageID, text, chatId, mediaType, ...)
+└── Types/                    # 199 typed response wrappers (BaseType subclass)
+```
+
+`Telegram` pulls in all domain traits via the `method` aggregator trait.
+All API methods return a typed `returned*` (response) object built by `BaseType::create()`.
+
+## License
+
+MIT
+
+## Documentation
+- [architecture/overview.md](docs/en/architecture/overview.md) — full architecture
+- [architecture/folder-structure.md](docs/en/architecture/folder-structure.md)
+- [architecture/methods.md](docs/en/architecture/methods.md) — the 186 methods grouped by trait
+- [architecture/telegram-class.md](docs/en/architecture/telegram-class.md) — core class reference
+- [architecture/type-system.md](docs/en/architecture/type-system.md) — type system & returned*
+- [guides/webhook-vs-polling.md](docs/en/guides/webhook-vs-polling.md)
+- [guides/retry-and-resilience.md](docs/en/guides/retry-and-resilience.md) — retry strategy
+- [guides/multi-bot.md](docs/en/guides/multi-bot.md) — two bots in one process (token stack, raw calls)
+- [CHANGELOG.md](CHANGELOG.md) — release history
+- [README.fa.md](README.fa.md) — مستندات فارسی (RTL)
+
+
+======================================================================
+SECTION: DOC: METHODS  (docs/en/architecture/methods.md)
+======================================================================
+
+# API Methods (186)
+
+Every method is public on `Telegram` (mixed in via the `method` aggregator trait).
+Methods return a typed `returned*` object created with `BaseType::create()`.
+
+Return-type conventions:
+- `returned`                       → scalar bool result
+- `returnedMessage`               → single Message
+- `returned*` others → matching response/entity wrapper
+
+## Trait: Updates (polling & webhook) — 7
+
+`getUpdates`, `setWebhook`, `deleteWebhook`, `getWebhookInfo`, `getMe`, `logOut`, `close`
+
+## Trait: Messages — 45
+
+`sendMessage`, `forwardMessage`, `copyMessage`, `forwardMessages`, `copyMessages`,
+`deleteMessage`, `deleteMessages`, `sendChatAction`, `setMessageReaction`,
+`deleteMessageReaction`, `deleteAllMessageReactions`, `sendPhoto`, `sendLivePhoto`,
+`sendAudio`, `sendDocument`, `sendVideo`, `sendAnimation`, `sendVoice`,
+`sendVideoNote`, `sendPaidMedia`, `sendMediaGroup`, `sendLocation`, `sendVenue`,
+`sendContact`, `sendPoll`, `sendDice`, `sendMessageDraft`, `sendChecklist`,
+`editMessageText`, `editMessageCaption`, `editMessageMedia`, `editMessageLiveLocation`,
+`stopMessageLiveLocation`, `editMessageChecklist`, `editMessageReplyMarkup`,
+`stopPoll`, `approveSuggestedPost`, `declineSuggestedPost`,
+**ephemeral:** `deleteEphemeralMessage`, `editEphemeralMessageText`,
+`editEphemeralMessageCaption`, `editEphemeralMessageMedia`, `editEphemeralMessageReplyMarkup`,
+**rich:** `sendRichMessage`, `sendRichMessageDraft`
+
+## Trait: ChatAdministration — 51
+
+`banChatMember`, `unbanChatMember`, `restrictChatMember`, `promoteChatMember`,
+`setChatAdministratorCustomTitle`, `setChatMemberTag`, `banChatSenderChat`,
+`unbanChatSenderChat`, `setChatPermissions`, `exportChatInviteLink`,
+`createChatInviteLink`, `editChatInviteLink`, `createChatSubscriptionInviteLink`,
+`editChatSubscriptionInviteLink`, `revokeChatInviteLink`, `approveChatJoinRequest`,
+`declineChatJoinRequest`, `setChatPhoto`, `deleteChatPhoto`, `setChatTitle`,
+`setChatDescription`, `pinChatMessage`, `unpinChatMessage`, `unpinAllChatMessages`,
+`leaveChat`, `getChat`, `getChatAdministrators`, `getChatMemberCount`,
+`getChatMembersCount`, `getUserPersonalChatMessages`, `setChatStickerSet`,
+`deleteChatStickerSet`, `getForumTopicIconStickers`, `createForumTopic`,
+`editForumTopic`, `closeForumTopic`, `reopenForumTopic`, `deleteForumTopic`,
+`unpinAllForumTopicMessages`, `editGeneralForumTopic`, `closeGeneralForumTopic`,
+`reopenGeneralForumTopic`, `hideGeneralForumTopic`, `unhideGeneralForumTopic`,
+`unpinAllGeneralForumTopicMessages`, `answerCallbackQuery`, `answerGuestQuery`,
+`getUserChatBoosts`, `getChatMember`, `answerChatJoinRequestQuery`,
+`sendChatJoinRequestWebApp`
+
+## Trait: Stickers — 16
+
+`sendSticker`, `getStickerSet`, `getCustomEmojiStickers`, `uploadStickerFile`,
+`createNewStickerSet`, `addStickerToSet`, `setStickerPositionInSet`,
+`deleteStickerFromSet`, `replaceStickerInSet`, `setStickerEmojiList`,
+`setStickerKeywords`, `setStickerMaskPosition`, `setStickerSetTitle`,
+`setStickerSetThumbnail`, `setCustomEmojiStickerSetThumbnail`, `deleteStickerSet`
+
+## Trait: PaymentsAndGames — 11
+
+`sendInvoice`, `createInvoiceLink`, `answerShippingQuery`, `answerPreCheckoutQuery`,
+`getMyStarBalance`, `getStarTransactions`, `refundStarPayment`,
+`editUserStarSubscription`, `sendGame`, `setGameScore`, `getGameHighScores`
+
+## Trait: Business — 36
+
+`getBusinessConnection`, `readBusinessMessage`, `deleteBusinessMessages`,
+`setBusinessAccountName`, `setBusinessAccountUsername`, `setBusinessAccountBio`,
+`setBusinessAccountProfilePhoto`, `removeBusinessAccountProfilePhoto`,
+`setBusinessAccountGiftSettings`, `getBusinessAccountStarBalance`,
+`transferBusinessAccountStars`, `getBusinessAccountGifts`, `getManagedBotToken`,
+`getManagedBotAccessSettings`, `replaceManagedBotToken`, `setManagedBotAccessSettings`,
+`sendGift`, `giftPremiumSubscription`, `getAvailableGifts`, `getUserGifts`,
+`getChatGifts`, `convertGiftToStars`, `upgradeGift`, `transferGift`, `postStory`,
+`repostStory`, `editStory`, `deleteStory`, `answerWebAppQuery`,
+`savePreparedInlineMessage`, `savePreparedKeyboardButton`, `answerInlineQuery`,
+`verifyUser`, `verifyChat`, `removeUserVerification`, `removeChatVerification`
+
+## Trait: BotSettings — 20
+
+`setMyCommands` `deleteMyCommands` `getMyCommands`, `setMyName`, `getMyName`,
+`setMyDescription`, `getMyDescription`, `setMyShortDescription`,
+`getMyShortDescription`, `setMyProfilePhoto`, `removeMyProfilePhoto`,
+`setChatMenuButton`, `getChatMenuButton`, `setMyDefaultAdministratorRights`,
+`getMyDefaultAdministratorRights`, `setPassportDataErrors`, `getUserProfilePhotos`,
+`getUserProfileAudios`, `setUserEmojiStatus`, `getFile`
+
+## Type-checker & convenience traits (not API methods)
+
+- `isUpdates` (23): `isMessage`, `isEditedMessage`, `isChannelPost`, `isEditedChannelPost`,
+  `isBusiness`, `isBusinessMessage`, `isEditedBusinessMessage`,
+  `isDeletedBusinessMessages`, `isMessageReaction`, `isMessageReactionCount`,
+  `isInlineQuery`, `isChosenInlineResult`, `isCallbackQuery`, `isShippingQuery`,
+  `isPreCheckoutQuery`, `isPurchasedPaidMedia`, `isPoll`, `isPollAnswer`,
+  `isChatJoinRequest`, `isMyChatMember`, `isChatMember`, `isChatBoost`,
+  `isRemovedChatBoost`
+- `isChatTypes` (4): `isPrivate`, `isGroup`, `isSupergroup`, `isChannel`
+- `isMedia` (12): `isVideo`, `isPhoto`, `isAudio`, `isVoice`, `isAnimation`,
+  `isVideoNote`, `isContact`, `isDocument`, `isSticker`, `isGame`, `isLocation`, `isMedia`
+- `otherTrait` (19): `messageID`, `text`, `caption`, `fromId`, `chatId`, `firstName`,
+  `lastName`, `username`, `languageCode`, `isPremium`, `chatType`, `msgType`,
+  `mediaType`, `fileId`, `mimeType`, `fileSize`, `isReply`, `replyToMessageId`,
+  `pathToUrl`
+- `Telegram` core (non-API): `setToken`, `getToken`, `switchToken`, `restoreToken`,
+  `clearTokenStack`, `getTokenStackCount`, `bot`, `close`, `__destruct`,
+  `getFileUrl`, `getInputData`, `setInputData`, `clearCache`, typed update getters,
+  `checkUpdateExists`, `getUpdateId`
+- `method` trait: `callRaw` (public), private `call`, `prepareBotData`,
+  `prepareMediaForUpload`, `prepareFileInput`, `prepareMediaGroup`
+
+## Total
+
+- 7 + 45 + 57 + 16 + 11 + 36 + 20 = **186 API methods**
+- 199 response/entity types
+
+
+======================================================================
+SECTION: DOC: OVERVIEW  (docs/en/architecture/overview.md)
+======================================================================
+
+# Project Overview
+
+**telegramBotPhp** is a lightweight, zero-dependency PHP 8.1+ wrapper for the Telegram Bot API.
+
+## Purpose
+
+Expose every Telegram Bot API method through an ergonomic, object-oriented PHP surface while keeping the runtime background minimal (PHP + cURL only — no external packages, no framework).
+
+## Scope & Numbers
+
+| Metric | Value |
+|--------|-------|
+| Bot API methods covered | **186** |
+| Typed response/entity classes | **199** |
+| PHP version | >= 8.1 |
+| Runtime dependencies | **0** (uses `ext-curl`, `ext-json`) |
+| Data style | PSR-4 autoload; `stdClass` decode + lazy typed wrappers |
+
+## Extension of the API
+
+The wrapper maps every endpoint to a **method** on `Telegram` (mixed in via domain *traits*), and every JSON response/entity to a **type** class under `src/Types/`.
+
+## Design goals
+
+1. **Completeness** — keep in sync with the official Bot API at `https://core.telegram.org/bots/api`.
+2. **Ergonomics** — friendly getters (`text()`, `chatId()`, `mediaType()`) on top of raw objects.
+3. **Reliability** — built-in HTTP retry with exponential backoff + `retry_after` handling, reusable cURL handle, long-poll timeout support.
+4. **Zero lock-in** — no framework dependencies; usable from webhook or long-polling scripts.
+
+See [folder-structure.md](folder-structure.md) for layout, [methods.md](methods.md) for the API surface, and [telegram-class.md](telegram-class.md) for the core class.
+
+
+======================================================================
+SECTION: DOC: TELEGRAM CLASS  (docs/en/architecture/telegram-class.md)
+======================================================================
+
+# Telegram core class
+
+`telegramBotApiPhp\Telegram` is the single root object. Construct it with a token, call any API method, and read update data through convenience getters.
+
+## Construction
+
+```php
+new Telegram(
+    string $token,
+    string $apiUrl = 'https://api.telegram.org',
+    string $fileUrlTemplate = '{url}/file/bot{token}/{file_path}',
+    int    $maxRetries = 3,
+    int    $retryDelayMs = 500,
+    int    $curlTimeout = 30
+)
+```
+
+`$curlTimeout` is clamped to a minimum of 5. For long polling, `getUpdates(timeout:)` raises the cURL timeout to `timeout+5` so the socket isn't cut mid-poll.
+
+## Update data
+
+The constructor reads `php://input` (webhook) and stores it as `stdClass`. Switch data manually with `setInputData()`, read typed views via getters:
+
+```php
+$bot->message();            // ?Message
+$bot->callbackQuery();      // ?CallbackQuery
+$bot->editedMessage();      // ?Message
+$bot->channelPost();        // ?Message
+$bot->poll();               // ?Poll
+$bot->chatMember();         // ?ChatMemberUpdated
+// ... 20+ typed getters
+$bot->checkUpdateExists('message');   // bool
+$bot->getUpdateId();                  // int
+```
+
+Update getters are **cached** per update (instance cache cleared by `clearCache()` / `setInputData()`).
+
+## Convenience getters (from `otherTrait`)
+
+`text()`, `caption()`, `messageID()`, `fromId()`, `chatId()`, `firstName()`,
+`lastName()`, `username()`, `languageCode()`, `isPremium()`, `chatType()`,
+`msgType()`, `mediaType()`, `fileId()`, `mimeType()`, `fileSize()`, `isReply()`,
+`replyToMessageId()`, `pathToUrl()`. These accept messages, edited messages, channel
+posts, callback queries and business messages.
+
+`msgType()` returns one of `PRIVATE|_TEXT|_MEDIA|_FORWARD`; `mediaType()` returns
+`_PHOTO|_VIDEO|_AUDIO|_VOICE|...|_TEXT`.
+
+## Multi-token switching
+
+```php
+$bot->switchToken('new-token');   // push
+$bot->restoreToken();             // pop
+$bot->clearTokenStack();
+$bot->getTokenStackCount();
+```
+
+## HTTP / resilience (Telegram::bot)
+
+`bot(method, data, isUpload)` is the low-level HTTP call. It:
+- reuses a single cURL handle (`close()` / `__destruct` release it);
+- retries up to `maxRetries` with exponential backoff for network errors, 5xx and 429;
+- for HTTP 429, honours `parameters.retry_after` before retrying;
+- returns a decoded `stdClass` on success, or `['ok'=>false,'error'=>...,'http_code'=>...,'attempts'=>...]` after exhausting retries.
+
+`callRaw(method, data)` (public, from `method` trait) calls the API without wrapping the result in a typed object — useful for raw introspection.
+
+## Direct low-level access
+
+- `getFileUrl($filePath)` — build a download URL for a file from its path.
+- `close()` — explicitly free the curl handle.
+
+See [overview.md](overview.md) for the module map and [methods.md](methods.md) for the full method list.
+
+
+======================================================================
+SECTION: DOC: TYPE SYSTEM  (docs/en/architecture/type-system.md)
+======================================================================
+
+# Type System
+
+Every JSON response from the Bot API is decoded to `stdClass`, then wrapped in a `BaseType` subclass (lazy, magic `__get`).
+
+## BaseType
+
+`telegramBotApiPhp\Types\BaseType` (abstract) implements:
+
+- `__get(string $name): mixed` — reads from the underlying array; returns `null` for missing keys.
+- `__isset(string $name): bool`
+- `getIterator(): \Traversable`
+- `toArray(): array` — recursive: nested `BaseType` and arrays of `BaseType` are converted.
+- `jsonSerialize(): array` — so `json_encode($type)` works.
+- `static create(array|object $data): static` — factory used by all API methods.
+
+Data arrives either as `stdClass` (constructor converts via `get_object_vars`) or an array, or another `BaseType`.
+
+## returned* response wrappers
+
+Each API method returns a **response** type such as:
+
+| Response class | Result payload |
+|----------------|----------------|
+| `returned`               | `bool` (ok) |
+| `returnedMessage`        | `Message` |
+| `returnedUser`           | `User` |
+| `returnedChat`           | `ChatFullInfo` |
+| `returnedChatMember`     | `ChatMember` |
+| `returnedFile`           | `File` |
+| `returnedBotShortDescription` | `BotShortDescription` |
+| `returnedArrayOfMessageId`, `returnedArrayOfChatMember`, ... | arrays of entities |
+| `returnedInt`, `returnedString` | scalar |
+
+They are thin typed wrappers: `ok`, `error_code`, `description` + `result`.
+
+## Entity types
+
+Message, User, Chat, ChatMember, StickerSet, Poll, GameHighScore, InlineQueryResult, InputMedia, InputRichMessage, etc. — 199 classes total, all extending `BaseType`.
+
+## Why magic properties instead of typed public props?
+
+- Zero maintenance: new API fields appear automatically (forward-compatible).
+- The raw update/response objects stay the single source of truth.
+- Trade-off: no IDE autocomplete for fields (see refactoring ideas in [methods.md](methods.md) / project roadmap).
+
+To get raw data back: `$type->toArray()` or `json_encode($type)`.
+
+
+======================================================================
+SECTION: DOC: FOLDER STRUCTURE  (docs/en/architecture/folder-structure.md)
+======================================================================
+
+# Folder Structure
+
+```
+telegramBotPhp/
+├── README.md                  # Quick start + install + index
+├── composer.json              # PSR-4: telegramBotApiPhp\ => src/
+├── src/
+│   ├── Telegram.php           # Core class (root object)
+│   ├── Traits/                # All behaviour is mixed in here
+│   └── Types/                 # Response & entity classes
+└── docs/
+    ├── architecture/          # Design docs (this tree)
+    └── guides/                # How-to guides
+```
+
+## src/ layout
+
+| Path | Purpose |
+|------|---------|
+| `Telegram.php` | Core class — constructed with a token; holds the HTTP client, update data, cache, token stack, retry config. |
+| `Traits/method.php` | Aggregator trait that `use`s all 7 domain traits + defines shared private `call()`/`prepareBotData()`/media helpers. |
+| `Traits/{Updates,Messages,ChatAdministration,Stickers,PaymentsAndGames,Business,BotSettings}.php` | **186 API methods**, grouped by API domain. |
+| `Traits/{isUpdates,isChatTypes,isMedia}.php` | Boolean update/chat/media type checkers. |
+| `Traits/otherTrait.php` | Convenience getters (`text()`, `chatId()`, `fileId()`, ...). |
+| `Types/BaseType.php` | Abstract base for all types — lazy `__get`/`toArray`, `JsonSerializable`, iterable. |
+| `Types/returned*.php` | Typed response wrappers (e.g. `returnedMessage`, `returnedUser`). |
+| `Types/*.php` | Entity types (Message, User, Chat, InlineKeyboardMarkup, InputRichMessage, ...). |
+
+```
+reason: the SDK keeps a deliberately flat profile — all behaviour on Telegram (via traits), all data as BaseType subclasses.
+
+See also [methods.md](methods.md) and [telegram-class.md](telegram-class.md).
+
+
+======================================================================
+SECTION: DOC: WEBHOOK VS POLLING  (docs/en/guides/webhook-vs-polling.md)
+======================================================================
+
+# Webhook vs Long Polling
+
+The SDK supports both delivery modes — you choose at the app level.
+
+## Webhook (HTTPS required)
+
+```php
+$bot = new Telegram($token);
+$update = $bot->getInputData();      // decodes php://input
+
+if ($bot->isMessage()) {
+    $bot->sendMessage($bot->chatId(), $bot->text());
+}
+```
+
+- **Pros:** real-time, no polling load, no connection held open.
+- **Cons:** requires a public HTTPS endpoint; callbacks logged by Telegram.
+
+### Setup
+
+```php
+$bot->setWebhook('https://example.com/hook');
+$bot->getWebhookInfo();
+$bot->deleteWebhook();
+```
+
+> Note: the modern format allows `secret_token`, `max_connections`, `allowed_updates` via the `$options` array.
+
+## Long polling (no public server needed)
+
+```php
+$bot = new Telegram($token);
+$offset = 0;
+
+while (true) {
+    $updates = $bot->getUpdates($offset, 100, 50);   // offset, limit, longpoll timeout(s)
+    foreach ($updates->result as $u) {
+        $offset = max($offset, $u->update_id + 1);
+        $bot->setInputData($u);
+        // ...handle
+    }
+    usleep(200_000);   // 0.2s
+}
+```
+
+- **Pros:** works behind NAT, no TLS needed, simple.
+- **Cons:** holds a socket open; each poll is a network round-trip.
+
+**Long-poll timeout note:** the SDK's default cURL timeout is 30s, but for `getUpdates` the timeout given to Telegram is used and the cURL timeout is raised to `timeout + 5` so the HTTP request isn't cut before Telegram replies.
+
+### Lifetime / single-instance
+
+Run exactly one polling process per bot. Two processes sharing `getUpdates` offset can silently consume updates from each other (see *silent bot* debugging). Use a process manager (systemd / supervisor) to keep it alive, not multiple concurrent processes.
+
+## Choosing
+
+- Public public-facing products (Telegram webhook) → **webhook.
+- Local/dev behind NAT → **polling.
+- Shared host that can't hold a process open → polling with a cron-triggered script is fine for low-frequency, but for a Telegram volume a persistent process is preferred.
+
+
+======================================================================
+SECTION: DOC: RETRY AND RESILIENCE  (docs/en/guides/retry-and-resilience.md)
+======================================================================
+
+# Retry & Resilience
+
+The SDK ships a small, built-in HTTP reliability layer in `Telegram::bot()`.
+
+## Retry policy
+
+- **Attempts:** up to `maxRetries` retries (default **3**) after the first request.
+- **Triggers to retry:** cURL/network error, `5xx` server error, and `429` (rate limit).
+- **Backoff:** exponential — `retryDelayMs * 2^(attempt-1)` (default first delay 500ms → 1s → 2s).
+- **429 honouring:** if the API response carries `parameters.retry_after`, the client sleeps that exact number of **seconds** before retrying (rather than the exponential guess). This avoids hammering the rate limiter.
+
+## cURL behaviour
+
+- A single cURL handle is created lazily and **reused** across calls (connection reuse under long polling). Free it with `close()` or on destruct.
+- `CURLOPT_TIMEOUT` defaults to 30s (constructor `$curlTimeout`). For long-poll `getUpdates` with an explicit `timeout`, the socket timeout is raised to `timeout + 5` so a slow long-poll response isn't cut.
+- SSL verification is ON (`CURLOPT_SSL_VERIFYPEER => true`).
+
+## Failure return shape
+
+When retries are exhausted, `bot()` returns a `stdClass`:
+
+```php
+(object)[
+    'ok'       => false,
+    'error'    => 'curl error message' ?: 'API Error after N attempts',
+    'http_code'=> 200|429|5xx|0,
+    'attempts' => N,
+];
+```
+
+`callRaw()` returns this raw object; typed methods wrap the `result` field if present.
+
+## In practice
+
+```php
+$bot = new Telegram($token, maxRetries: 5, retryDelayMs: 300, curlTimeout: 60);
+
+$res = $bot->sendMessage($chatId, 'Hi');
+if (!($res->ok ?? false)) {
+    // handle API error via $res->error / $res->http_code
+}
+```
+
+
+======================================================================
+SECTION: DOC: MULTI-BOT  (docs/en/guides/multi-bot.md)
+======================================================================
+
+# Multi-bot guide
+
+Running two or more bots inside one PHP process — checking channel membership with a
+second bot's token, or letting bot #1 send messages as bot #2.
+
+Two independent patterns are supported. Both were verified live with two real bots
+(see [CHANGELOG.md](../../../CHANGELOG.md) for the evidence table).
+
+---
+
+## Pattern 1 — Independent instances
+
+Each `Telegram` object owns its own token, cURL handle and update cache. Nothing is
+shared between instances, so identity isolation is guaranteed by construction:
 
 ```php
 use telegramBotApiPhp\Telegram;
-$bot = new Telegram($token);
-$bot->setInputData($update);
-if ($bot->isMessage() && $bot->text() === '/start') {
-    $bot->sendMessage($bot->chatId(), 'Hi!');
+
+$bot1 = new Telegram($_ENV['BOT1_TOKEN']);
+$bot2 = new Telegram($_ENV['BOT2_TOKEN']);
+
+// Scenario A (owner request): membership check executed by bot #2's token,
+// from inside bot #1's process.
+$member = $bot2->getChatMember('@mychannel', $userId);
+if (($member->result->status ?? '') === 'member') {
+    // user is in the channel — checked by bot #2
 }
+
+$bot1->sendMessage($chatId, 'این پاسخ از ربات ۱ است');
+$bot2->sendMessage($chatId, 'این پیام از ربات ۲ است');
 ```
+
+## Pattern 2 — Token stack on one instance
+
+One `Telegram` instance can temporarily *become* another bot, send, and switch back.
+The stack is LIFO: every `switchToken()` pushes the current token, `restoreToken()`
+pops it.
+
+```php
+// Scenario B (owner request): bot #1 sends AS bot #2, inside bot #1's process.
+$bot1->switchToken($_ENV['BOT2_TOKEN']);
+$bot1->sendMessage($chatId, 'این پیام توسط نمونهٔ ربات ۱، اما با هویت ربات ۲ ارسال شد');
+$bot1->restoreToken();
+
+// The same instance is bot #1 again:
+$bot1->sendMessage($chatId, 'و این یکی دوباره از ربات ۱ است');
+```
+
+Helpers: `getToken()`, `switchToken(string $token)`, `restoreToken()`,
+`clearTokenStack()`, `getTokenStackCount()`.
+
+> Prefer Pattern 1 when both bots are used constantly — the stack is designed for
+> short, bracketed excursions. Pattern 2 keeps a single cURL handle (fewer sockets),
+> Pattern 1 keeps identities permanently separated.
+
+## Raw calls
+
+`callRaw(string $method, array $data = [])` performs any Bot API method and returns
+the **full decoded response** (`stdClass` with `ok`, `result`, `description`,
+`parameters.retry_after`) — useful for methods added recently or diagnostics:
+
+```php
+$me    = $bot2->callRaw('getMe');          // $me->result->username
+$probe = $bot2->callRaw('getChat', ['chat_id' => '@mychannel']);
+```
+
+## Framework integration (TelegramBase)
+
+The [TelegramBase framework](https://github.com/alirezax5/telegramBase) wraps this
+library with a `BotManager` registry:
+
+- `BOT_EXTRA_BOTS="second:<token2>,third:<token3>"` (env) registers named bots at boot;
+- plugins fetch them via `BotManager::getInstance()->get('second')`;
+- `has('name')` must be checked first — `get()` of an unknown name silently falls back
+  to the **main** bot, which would execute the call under the wrong identity;
+- see `docs/en/multi-bot.md` in the framework repository.
+
+## One webhook file, many bots (secret_token routing)
+
+You can serve **any number of bots from ONE webhook file** — no extra folders, and
+bot tokens never appear in URLs:
+
+1. Give **every bot its own random secret** (`[A-Za-z0-9_-]`, 32+ chars).
+2. Register the **same URL** for every bot, each with its own secret:
+   `setWebhook?url=https://example.com/hook.php&secret_token=<this-bots-secret>`
+3. Telegram echoes the secret back on every update in the header
+   `X-Telegram-Bot-Api-Secret-Token`.
+4. In `hook.php`, read the header, look the secret up in a registry
+   (`secret → token`), then build the matching `Telegram` instance
+   (Pattern 1) and process the update under that identity.
+
+```php
+// hook.php — the whole router in a few lines
+$registry = [
+    'secret-A...' => $_ENV['BOT1_TOKEN'],
+    'secret-B...' => $_ENV['BOT2_TOKEN'],
+];
+$secret = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
+if (!isset($registry[$secret])) { http_response_code(403); exit; }
+
+$bot = new Telegram($registry[$secret]);           // that bot's identity
+$update = json_decode(file_get_contents('php://input'), true);
+// ... handle $update with $bot ...
+```
+
+The secret doubles as an authenticity check (requests without it are not from
+Telegram — answer `403`). Verified live 2026-10-11: two real bots, one file,
+7/7 deliveries with the correct identity every time.
+
+Token storage options, short version: a fixed set of bots → `.env`; bots added
+at runtime → DB table with the token column **encrypted at rest** (cache the
+lookup); user-created children → Managed Bots, token fetched live from Telegram
+with `getManagedBotToken($user_id)` and never written to disk.
+
+## Pitfalls
+
+- **`get()` fallback**: calling `get('unknown-name')` returns the main bot (with a
+  warning log) instead of throwing — always guard with `has()`.
+- **Token stack is per-instance**: switching tokens on `$bot1` does not affect `$bot2`.
+- **Unbalanced restore**: if you `switchToken()` without a matching `restoreToken()`
+  on an exception path, the instance keeps the borrowed identity. Use try/finally:
+  ```php
+  $bot1->switchToken($t2);
+  try {
+      $bot1->sendMessage($chatId, 'as bot #2');
+  } finally {
+      $bot1->restoreToken();
+  }
+  ```
+- **File uploads inside JSON fields**: local paths for `stickers`, `media`, etc. are
+  converted to `CURLFile` automatically (v3.3.0+) — but only before JSON encoding, so
+  always pass PHP arrays (not pre-encoded JSON strings) for those parameters.
+
+## Live verification (2026-10-11)
+
+Two real bots (`@emojiCustom_bot` as #1, `@instaroonxbot` as #2), one PHP process:
+
+| Step | Result |
+|---|---|
+| Identity: `getMe` via both instances | ✔ two usernames |
+| Isolation: bot #2 calls never touched bot #1's token | ✔ |
+| Cross-send (Pattern 2): bot #1 sends as bot #2 → user chat | ✔ 239 ms |
+| Membership (Pattern 1): `getChatMember` via bot #2 | ✔ `status=member`, 13 ms |
+| Token stack round-trip on the main instance | ✔ switch → @instaroonxbot, restore → @emojiCustom_bot |
+| Full harness suite | ✔ 5/5, 393 ms total |
+| secret_token webhook routing: both bots → ONE file, real `/start` + real button taps | ✔ 7/7, correct identity every time |
+
+
+======================================================================
+SECTION: META: CHANGELOG (current version)  (CHANGELOG.md)
+======================================================================
+
+# Changelog — telegramBotPhp
+
+All notable changes to this project are documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/); versioning follows [SemVer](https://semver.org/).
+
+## [Unreleased]
+
+### Added — docs: one webhook file, many bots (`secret_token` routing)
+
+- `docs/en/guides/multi-bot.md` (+ all 6 translations) gained the `secret_token`
+  webhook routing pattern with a minimal `hook.php` router example: any number of
+  bots from one webhook file, bot tokens never in URLs, the per-bot secret doubles
+  as the inbound authenticity check (403 otherwise). Verified live 2026-10-11 with
+  two real bots: 7/7 deliveries, correct identity every time. Also added a short
+  token-storage note (`.env` / encrypted DB registry / Managed Bots live fetch).
+
+## [3.3.0] — 2026-10-11
+
+### Added — multilingual documentation
+
+- The complete documentation set (5 architecture references + 3 guides) now ships in **seven languages** under per-language folders: `docs/en/` (canonical), `docs/fa/`, `docs/zh/`, `docs/ru/`, `docs/fr/`, `docs/pt/`, `docs/ar/`.
+- Language hub added at `docs/README.md`; per-language READMEs (`README.md`, `README.fa.md`, `README.zh.md`, `README.ru.md`, `README.fr.md`, `README.pt.md`, `README.ar.md`) with a language switcher at the top of each.
+
+### Fixed
+- **`getChatMember()` was broken in 3.2.1** — `returnedChatMember` was referenced without its `telegramBotApiPhp\Types` import in `ChatAdministration.php`, so every call threw
+  `Class "telegramBotApiPhp\Traits\returnedChatMember" not found`.
+  Found and verified live during a two-bot integration test.
+- **JSON serialization of nested API parameters** — `prepareBotData()` now JSON-encodes every
+  parameter the Bot API accepts as a nested value:
+  `message_ids`, `allowed_updates`, `results`, `reaction`, `emoji_list`, `keywords`,
+  `custom_emoji_ids`, `mask_position`, `suggested_tip_amounts`, `rights`,
+  `chat_administrator_rights`, `entities`, `caption_entities`, `text_entities`,
+  `explanation_entities`, `link_preview_options`, `reply_parameters`.
+  Previously these were sent as raw PHP arrays, which Telegram rejects with
+  `Bad Request: can't parse ...`.
+- **Local-file uploads preserved** — file-bearing parameters (`media`, `stickers`,
+  `sticker`, `thumbnail`, `photo`, `video`, ...) are handled by `prepareMediaForUpload()`
+  BEFORE any JSON encoding; `stickers` items now also convert local paths to `CURLFile`,
+  so `createNewStickerSet()` works with local files too.
+- **Null parameters stripped** — `prepareBotData()` removes `null` values from every
+  request payload, so nullable arguments (e.g. `getUpdates(..., allowed_updates: null)`,
+  `editMessageReplyMarkup(null, ...)`) no longer reach Telegram as empty strings.
+- **cURL timeout leak fixed** — the persistent handle now resets `CURLOPT_TIMEOUT` to the
+  configured `curlTimeout` on every call before a long-poll `getUpdates` raises it;
+  non-poll calls no longer inherit a raised timeout from a previous long poll.
+
+### Verified live (two real bots, one PHP process)
+| Check | Result |
+|---|---|
+| `callRaw('getMe')` on two independent instances | two different identities ✔ |
+| `switchToken()` → `restoreToken()` round-trip on one instance | identity restored ✔ |
+| Scenario A — `getChatMember()` executed by bot #2's token inside bot #1's process | `ok=true`, `status=member` (13 ms) ✔ |
+| Scenario B — bot #1 sends a message to the user **as bot #2** via the token stack | delivered ✔ |
+| `deleteMessages()` with new `message_ids` JSON encoding | accepted ✔ |
+| `sendMessage(entities: [...])` with new `entities` JSON encoding | accepted ✔ |
+| Full plugin harness suite (`MultiBotTestPlugin`) | 5/5 PASS in 393 ms ✔ |
+
+## [3.2.1] — 2026-08-10
+Baseline this release builds on. See `git log` for earlier history
+(3.0.0 initial modern release, 3.0.1, 3.1.1, 3.2.0, 3.2.1).
+

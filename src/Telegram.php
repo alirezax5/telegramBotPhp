@@ -160,6 +160,10 @@ class Telegram
         $handle = $this->getCurlHandle();
 
         while ($attempt <= $this->maxRetries) {
+            // Reset the per-call timeout on the persistent handle first: a
+            // previous long-poll getUpdates may have raised it, and non-poll
+            // calls must not inherit that raised timeout.
+            curl_setopt($handle, CURLOPT_TIMEOUT, $this->curlTimeout);
             curl_setopt($handle, CURLOPT_URL, $url);
             curl_setopt($handle, CURLOPT_POSTFIELDS, $data);
 
