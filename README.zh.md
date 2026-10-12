@@ -66,6 +66,26 @@ $me = $bot->callRaw('getMe');
 
 完整指南：[docs/guides/multi-bot.md](docs/zh/guides/multi-bot.md)。
 
+## Mini App `initData` 校验
+
+小程序前端会从 Telegram 收到**已签名**的身份字符串(`Telegram.WebApp.initData`)。在返回用户数据之前必须在服务端校验它 —— `telegramBotApiPhp\WebApp\InitData` 以恒定时间比较实现了官方 HMAC-SHA256 方案:
+
+```php
+use telegramBotApiPhp\WebApp\InitData;
+
+$res = InitData::validate($_POST['initData'] ?? '', $botToken, ['max_age' => 3600]);
+if (!$res['ok']) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => $res['error']]);
+    exit;
+}
+
+$me         = $res['user'];         // ['id' => 555000111, 'first_name' => 'Ali', ...]
+$startParam = $res['start_param'];  // 来自 ?startapp=
+```
+
+辅助方法:`valid()`、`user()` 与 `build()`(仅用于测试的签名 initData 生成器)。完整指南:[docs/guides/mini-apps.md](docs/guides/mini-apps.md)。
+
 ## 架构
 
 ```

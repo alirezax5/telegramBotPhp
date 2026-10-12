@@ -1,12 +1,12 @@
 <div dir="rtl">
 
-[English](README.md) · **فارسی** · [中文](README.zh.md) · [Русский](README.ru.md) · [Français](README.fr.md) · [Português](README.pt.md) · [العربية](README.ar.md)
-
 # telegramBotPhp — مستندات فارسی
 
-کتابخانه‌ای سبک برای **Telegram Bot API** روی PHP 8.1+ — بدون هیچ وابستگی زمان اجرا، با پوشش کامل تمام متدهای فعلی API (186 متد ربات) و تمام انواع پاسخ/موجودیت (199 تایپ).
+کتابخانه‌ای سبک برای **Telegram Bot API** روی PHP 8.1+ — بدون هیچ وابستگی زمان اجرا، با پوشش کامل تمام متدهای فعلی API (۱۸۶ متد) و تمام انواع پاسخ/موجودیت (۱۹۹ کلاس تایپ‌شده).
 
-نسخه فعلی: **3.3.0** — [CHANGELOG.md](CHANGELOG.md) را ببینید (رفع `getChatMember()` شکسته در 3.2.1، تکمیل سریال‌سازی JSON پارامترهای تودرتو، حذف مقادیر null و تبدیل خودکار فایل‌های محلی به `CURLFile`، رفع نشتی timeout cURL؛ جریان‌های چندرباته با دو ربات واقعی به‌صورت زنده راستی‌آزمایی شده‌اند).
+نسخه فعلی: **3.3.0** — تاریخچه کامل در [CHANGELOG.md](CHANGELOG.md).
+
+> این سند معادل فارسیِ [README.md](README.md) است و در صورت تفاوت، نسخه انگلیسی ملاک است.
 
 ## نیازمندی‌ها
 
@@ -28,22 +28,22 @@ require 'vendor/autoload.php';
 
 use telegramBotApiPhp\Telegram;
 
-// Long polling
+// حالت Long polling
 $bot = new Telegram($_ENV['TELEGRAM_BOT_TOKEN']);
 
-$updates = $bot->getUpdates(0, 100, 50);       // offset, limit, long-poll timeout (s)
+$updates = $bot->getUpdates(0, 100, 50);       // آفست، سقف تعداد، مهلت long-poll (ثانیه)
 foreach ($updates->result as $u) {
     $bot->setInputData($u);
     $chatId = $bot->chatId();
     $text   = $bot->text();
 
     if ($text === '/start') {
-        $bot->sendMessage($chatId, 'Welcome!');
+        $bot->sendMessage($chatId, 'خوش آمدید!');
     }
 }
 
-// Webhook mode
-$update = $bot->getInputData();                   // decodes php://input
+// حالت Webhook
+$update = $bot->getInputData();                   // رمزگشایی php://input
 if ($bot->isMessage()) {
     $bot->sendMessage($chatId, $bot->text());
 }
@@ -51,45 +51,75 @@ if ($bot->isMessage()) {
 
 ## چندرباته (دو ربات در یک پروسه)
 
+دو الگو پشتیبانی می‌شود؛ هر دو با دو ربات واقعی به‌صورت زنده تست شده‌اند:
+
 ```php
-// Pattern 1 — independent instances (e.g. membership check via bot #2)
+// الگوی ۱ — نمونه‌های مستقل (مثال: چک عضویت کاربر در کانال با توکن ربات دوم)
 $bot2 = new Telegram($_ENV['BOT2_TOKEN']);
 $member = $bot2->getChatMember('@mychannel', $userId);
 $status = $member->result->status ?? 'left';      // member | administrator | creator | left | kicked
 
-// Pattern 2 — token stack: bot #1 sends AS bot #2
+// الگوی ۲ — توکن‌استک: ربات ۱ «به‌عنوان» ربات ۲ پیام می‌فرستد
 $bot->switchToken($_ENV['BOT2_TOKEN']);
-$bot->sendMessage($chatId, 'Sent as bot #2, from the bot #1 process');
+$bot->sendMessage($chatId, 'این پیام با هویت ربات ۲، اما داخل پروسه ربات ۱ ارسال شد');
 $bot->restoreToken();
 
-// Raw API access (full stdClass response)
+// فراخوانی خام API (پاسخ کامل stdClass)
 $me = $bot->callRaw('getMe');
 ```
 
-راهنمای کامل: [docs/guides/multi-bot.md](docs/fa/guides/multi-bot.md).
+راهنمای کامل: [docs/guides/multi-bot.md](docs/guides/multi-bot.md).
+
+## اعتبارسنجی `initData` مینی‌اپ
+
+فرانت‌اند مینی‌اپ از تلگرام یک رشتهٔ هویتی **امضاشده** می‌گیرد (`Telegram.WebApp.initData`). قبل از سرو هر دادهٔ کاربر، آن را سمت سرور راستی‌آزمایی کنید — `telegramBotApiPhp\WebApp\InitData` الگوریتم رسمی HMAC-SHA256 را با مقایسهٔ زمان-ثابت پیاده می‌کند:
+
+```php
+use telegramBotApiPhp\WebApp\InitData;
+
+$res = InitData::validate($_POST['initData'] ?? '', $botToken, ['max_age' => 3600]);
+if (!$res['ok']) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => $res['error']], JSON_UNESCAPED_UNICODE);   // bad_signature، auth_date_expired، ...
+    exit;
+}
+
+$me         = $res['user'];         // ['id' => 555000111, 'first_name' => 'علی', ...]
+$startParam = $res['start_param'];  // بار لینک عمیق از ?startapp=...
+```
+
+هلپرها: `valid()`، `user()` و `build()` — مولد فیکسچر امضاشده (فقط توسعه) برای تست endpointها قبل از ساختن فرانت‌اند. راهنمای کامل: [docs/guides/mini-apps.md](docs/guides/mini-apps.md).
+
+## نکته‌های مهم نسخه 3.3.0
+
+- `getChatMember()` در نسخه 3.2.1 به دلیل فراموشی یک `use` کاملاً شکسته بود — در این نسخه رفع و به‌صورت زنده تست شده است.
+- همه پارامترهای تودرتو (مانند `message_ids`، `allowed_updates`، `entities`، `reply_markup`، `results` و …) به‌صورت خودکار JSON می‌شوند؛ آرایه خام PHP دیگر خطای «can't parse» نمی‌دهد.
+- مقادیر `null` از payload حذف می‌شوند و فایل‌های محلی پیش از انکودینگ به `CURLFile` تبدیل می‌شوند (آپلود استیکر/مدیا با مسیر محلی سالم است).
+- هر فراخوانی، `CURLOPT_TIMEOUT` را ریست می‌کند؛ مهلت long-poll به فراخوانی‌های بعدی نشت نمی‌کند.
 
 ## معماری
 
 ```
 src/
-├── Telegram.php          # Core class — HTTP client, update parser, token stack, caching, retry
+├── Telegram.php          # کلاس اصلی — کلاینت HTTP، پارسر آپدیت، توکن‌استک، کش، retry
 ├── Traits/
-│   ├── Updates.php            # polling + webhook methods (getUpdates, setWebhook, getMe, ...)
-│   ├── Messages.php          # 45 messaging methods (send*, edit*, ephemeral, rich)
-│   ├── ChatAdministration.php# 51 chat/admin/forum methods
-│   ├── Stickers.php          # 16 sticker-set methods
-│   ├── PaymentsAndGames.php  # 11 payments/stars/games methods
-│   ├── Business.php          # 36 business/managed-bot/story/inline/user-verify methods
-│   ├── BotSettings.php       # 20 bot-profile/commands/menu methods
-│   ├── isUpdates.php         # Boolean checkers for update types (23)
-│   ├── isChatTypes.php       # Boolean checkers for chat types
-│   ├── isMedia.php           # Boolean checkers for media types
-│   └── otherTrait.php        # Convenience getters (messageID, text, chatId, mediaType, ...)
-└── Types/                    # 199 typed response wrappers (BaseType subclass)
+│   ├── Updates.php            # متدهای polling و webhook (getUpdates، setWebhook، getMe و ...)
+│   ├── Messages.php           # ۴۵ متد پیام‌رسانی (send*، edit*، ephemeral، rich)
+│   ├── ChatAdministration.php # ۵۱ متد مدیریت چت/ادمین/فروم
+│   ├── Stickers.php           # ۱۶ متد استیکر
+│   ├── PaymentsAndGames.php   # ۱۱ متد پرداخت/ستاره/بازی
+│   ├── Business.php           # ۳۶ متد business/استوری/inline
+│   ├── BotSettings.php        # ۲۰ متد تنظیمات ربات
+│   ├── isUpdates.php          # چکرهای بولی نوع آپدیت (۲۳)
+│   ├── isChatTypes.php        # چکرهای بولی نوع چت
+│   ├── isMedia.php            # چکرهای بولی نوع مدیا
+│   └── otherTrait.php         # گترهای کمکی (messageID، text، chatId، mediaType و ...)
+└── Types/                    # ۱۹۹ کلاس تایپ‌شده پاسخ (زیرکلاس BaseType)
 ```
 
 کلاس `Telegram` همه traitهای دامنه‌ای را از طریق trait تجمیع‌گر `method` به کار می‌گیرد.
 خروجی همه متدهای API، آبجکت تایپ‌شده `returned*` است که با `BaseType::create()` ساخته می‌شود.
+اعتبارسنجی هویت مینی‌اپ در `src/WebApp/InitData.php` است (مستقل، بدون وابستگی به API ربات).
 
 ## مجوز
 
@@ -97,15 +127,14 @@ MIT
 
 ## مستندات
 
-- [architecture/overview.md](docs/fa/architecture/overview.md) — معماری کامل
-- [architecture/folder-structure.md](docs/fa/architecture/folder-structure.md)
-- [architecture/methods.md](docs/fa/architecture/methods.md) — 186 متد به تفکیک trait
-- [architecture/telegram-class.md](docs/fa/architecture/telegram-class.md) — مرجع کلاس اصلی
-- [architecture/type-system.md](docs/fa/architecture/type-system.md) — سیستم تایپ و returned*
-- [guides/webhook-vs-polling.md](docs/fa/guides/webhook-vs-polling.md)
-- [guides/retry-and-resilience.md](docs/fa/guides/retry-and-resilience.md) — استراتژی retry
-- [guides/multi-bot.md](docs/fa/guides/multi-bot.md) — دو ربات در یک پروسه (توکن‌استک، فراخوانی خام)
+- [architecture/overview.md](docs/architecture/overview.md) — معماری کامل
+- [architecture/methods.md](docs/architecture/methods.md) — فهرست ۱۸۶ متد به تفکیک trait
+- [architecture/telegram-class.md](docs/architecture/telegram-class.md) — مرجع کلاس اصلی
+- [architecture/type-system.md](docs/architecture/type-system.md) — سیستم تایپ و returned*
+- [guides/webhook-vs-polling.md](docs/guides/webhook-vs-polling.md) — انتخاب حالت دریافت آپدیت
+- [guides/retry-and-resilience.md](docs/guides/retry-and-resilience.md) — استراتژی retry
+- [guides/multi-bot.md](docs/guides/multi-bot.md) — دو ربات در یک پروسه (توکن‌استک، فراخوانی خام)
+- [guides/mini-apps.md](docs/guides/mini-apps.md) — اعتبارسنجی `initData` مینی‌اپ (HMAC-SHA256، `max_age`، الگوی endpoint)
 - [CHANGELOG.md](CHANGELOG.md) — تاریخچه نسخه‌ها
-- [README.fa.md](README.fa.md) — مستندات فارسی (RTL)
 
 </div>

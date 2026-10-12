@@ -64,7 +64,27 @@ $bot->restoreToken();
 $me = $bot->callRaw('getMe');
 ```
 
-Full guide: [docs/guides/multi-bot.md](docs/en/guides/multi-bot.md).
+Full guide: [docs/guides/multi-bot.md](docs/guides/multi-bot.md).
+
+## Mini App `initData` validation
+
+A Mini App frontend gets a **signed** identity string from Telegram (`Telegram.WebApp.initData`). Verify it server-side before serving any user data — `telegramBotApiPhp\WebApp\InitData` implements the official HMAC-SHA256 scheme with constant-time comparison:
+
+```php
+use telegramBotApiPhp\WebApp\InitData;
+
+$res = InitData::validate($_POST['initData'] ?? '', $botToken, ['max_age' => 3600]);
+if (!$res['ok']) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => $res['error']]);   // bad_signature, auth_date_expired, ...
+    exit;
+}
+
+$me        = $res['user'];        // ['id' => 555000111, 'first_name' => 'Ali', ...]
+$startParam = $res['start_param']; // deep-link payload from ?startapp=...
+```
+
+Helpers: `valid()`, `user()`, and `build()` — a dev-only generator of correctly signed initData strings for testing endpoints before the frontend exists. Full guide: [docs/guides/mini-apps.md](docs/guides/mini-apps.md).
 
 ## Architecture
 
@@ -88,19 +108,21 @@ src/
 
 `Telegram` pulls in all domain traits via the `method` aggregator trait.
 All API methods return a typed `returned*` (response) object built by `BaseType::create()`.
+Mini App identity validation lives in `src/WebApp/InitData.php` (standalone, no bot-API dependency).
 
 ## License
 
 MIT
 
 ## Documentation
-- [architecture/overview.md](docs/en/architecture/overview.md) — full architecture
-- [architecture/folder-structure.md](docs/en/architecture/folder-structure.md)
-- [architecture/methods.md](docs/en/architecture/methods.md) — the 186 methods grouped by trait
-- [architecture/telegram-class.md](docs/en/architecture/telegram-class.md) — core class reference
-- [architecture/type-system.md](docs/en/architecture/type-system.md) — type system & returned*
-- [guides/webhook-vs-polling.md](docs/en/guides/webhook-vs-polling.md)
-- [guides/retry-and-resilience.md](docs/en/guides/retry-and-resilience.md) — retry strategy
-- [guides/multi-bot.md](docs/en/guides/multi-bot.md) — two bots in one process (token stack, raw calls)
+- [architecture/overview.md](docs/architecture/overview.md) — full architecture
+- [architecture/folder-structure.md](docs/architecture/folder-structure.md)
+- [architecture/methods.md](docs/architecture/methods.md) — the 186 methods grouped by trait
+- [architecture/telegram-class.md](docs/architecture/telegram-class.md) — core class reference
+- [architecture/type-system.md](docs/architecture/type-system.md) — type system & returned*
+- [guides/webhook-vs-polling.md](docs/guides/webhook-vs-polling.md)
+- [guides/retry-and-resilience.md](docs/guides/retry-and-resilience.md) — retry strategy
+- [guides/multi-bot.md](docs/guides/multi-bot.md) — two bots in one process (token stack, raw calls)
+- [guides/mini-apps.md](docs/guides/mini-apps.md) — Mini App `initData` validation (HMAC-SHA256, `max_age`, endpoint pattern)
 - [CHANGELOG.md](CHANGELOG.md) — release history
 - [README.fa.md](README.fa.md) — مستندات فارسی (RTL)

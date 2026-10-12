@@ -150,7 +150,64 @@ class Telegram
 
     // ====================== Core API ======================
 
+    /** @var ?\Closure API trace hook — set via onApiCall(); fires once per API call. */
+    private static ?\Closure $apiTraceCallback = null;
+
+    /**
+     * Register a process-wide observer fired after EVERY Bot API call
+     * (all instances, all tokens). Receives one compact $info array:
+     * [method, duration_ms, ok, chat_id?, error_code?, description?, retry_after?].
+     * Full payloads are intentionally NOT passed — keep logging cheap and
+     * private. Pass null to unregister. Used by telegramBase's LOG_API_TRACE.
+     */
+    public static function onApiCall(?\Closure $callback): void
+    {
+        self::$apiTraceCallback = $callback;
+    }
+
     public function bot(string $method, array $data = [], bool $isUpload = false): ?\stdClass
+    {
+        $t0 = microtime(true);
+        $result = $this->botExecute($method, $data, $isUpload);
+        $this->traceApiCall($method, $data, $t0, $result);
+
+        return $result;
+    }
+
+    private function traceApiCall(string $method, array $data, float $t0, ?\stdClass $result): void
+    {
+        if (self::$apiTraceCallback === null) {
+            return;
+        }
+
+        try {
+            $ok = is_object($result) && !empty($result->ok);
+
+            $info = [
+                'method'      => $method,
+                'duration_ms' => (int) round((microtime(true) - $t0) * 1000),
+                'ok'          => $ok,
+            ];
+
+            if (isset($data['chat_id']) && is_scalar($data['chat_id'])) {
+                $info['chat_id'] = $data['chat_id'];
+            }
+
+            if (!$ok && is_object($result)) {
+                $info['error_code']  = $result->error_code ?? $result->http_code ?? null;
+                $info['description'] = $result->description ?? $result->error ?? null;
+                if (isset($result->parameters->retry_after)) {
+                    $info['retry_after'] = $result->parameters->retry_after;
+                }
+            }
+
+            (self::$apiTraceCallback)($info);
+        } catch (\Throwable) {
+            // Tracing must never break an API call.
+        }
+    }
+
+    private function botExecute(string $method, array $data = [], bool $isUpload = false): ?\stdClass
     {
         $url = $this->buildUrl($method);
         $attempt = 0;

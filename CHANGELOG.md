@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/); versioni
 
 ## [Unreleased]
 
+### Added — Mini App `initData` validator — `telegramBotApiPhp\WebApp\InitData` (2026-10-12)
+
+- New `WebApp\InitData` class: server-side validation of the signed identity string Mini App frontends receive (`Telegram.WebApp.initData`), implementing the official HMAC-SHA256 scheme — `secret_key = HMAC_SHA256("WebAppData", bot_token)`, then compare against the `hash` field with constant-time `hash_equals`. Pure PHP (json/hash only), no bot-API dependency — Mini App traffic bypasses the webhook entirely.
+- API: `validate($initData, $botToken, ['max_age' => 3600])` returns `['ok' => true, 'user' => ?array, 'auth_date' => int, 'start_param' => ?string, 'fields' => array, 'hash' => string]` or `['ok' => false, 'error' => …]` (`bad_signature`, `auth_date_expired`, `hash_missing`, …); helpers `valid()` and `user()`; plus `build(array $fields, $botToken)` — a development-only generator of correctly signed initData strings for curl-testing endpoints and fixtures.
+- `max_age` freshness window rejects stale `auth_date` (default 86400 s, `0` disables) — the replay defense, since `initData` never expires by itself.
+- Docs: `docs/guides/mini-apps.md` (en) with endpoint pattern, API table, deep-link/`start_param` notes, security checklist and algorithm reference (+ fa and 4 more translations in the GitHub bundle); README sections added.
+- Verified with a cross-language test vector generated independently in Python (guards against the classic HMAC key/message argument swap); also adopted by telegramBase as `App\MiniApp\InitData` with env token auto-detection.
+
+### Added — `Telegram::onApiCall()` API trace hook (2026-10-12)
+
+- Static, process-wide observer fired **after every Bot API call** (all instances, all tokens): `Telegram::onApiCall(function (array $info) { ... });` — pass `null` to unregister.
+- `$info` is deliberately compact: `method`, `duration_ms`, `ok`, plus `chat_id` (when present in the request) and on failure `error_code`, `description`, `retry_after`. Full payloads are intentionally NOT exposed — keep logging cheap and private.
+- Tracing is wrapped so it can never break delivery (exceptions inside the callback are swallowed). Implemented by splitting `bot()` into a thin timing wrapper over `botExecute()` — zero behavior change when no callback is registered.
+- Consumer: telegramBase's `LOG_API_TRACE=1` (`App\Bot\ApiTrace`) uses it to write one delivery line per API call into the app log.
+
+
 ### Added — docs: one webhook file, many bots (`secret_token` routing)
 
 - `docs/en/guides/multi-bot.md` (+ all 6 translations) gained the `secret_token`

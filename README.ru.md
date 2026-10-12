@@ -66,6 +66,26 @@ $me = $bot->callRaw('getMe');
 
 Полное руководство: [docs/ru/guides/multi-bot.md](docs/ru/guides/multi-bot.md).
 
+## Валидация `initData` мини-приложений
+
+Фронтенд мини-приложения получает от Telegram **подписанную** строку идентичности (`Telegram.WebApp.initData`). Проверяйте её на сервере перед выдачей данных пользователя — `telegramBotApiPhp\WebApp\InitData` реализует официальную схему HMAC-SHA256 со сравнением за постоянное время:
+
+```php
+use telegramBotApiPhp\WebApp\InitData;
+
+$res = InitData::validate($_POST['initData'] ?? '', $botToken, ['max_age' => 3600]);
+if (!$res['ok']) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => $res['error']]);
+    exit;
+}
+
+$me         = $res['user'];         // ['id' => 555000111, 'first_name' => 'Ali', ...]
+$startParam = $res['start_param'];  // payload deep-link ?startapp=
+```
+
+Хелперы: `valid()`, `user()` и `build()` (генератор подписанной initData для тестов). Полное руководство: [docs/guides/mini-apps.md](docs/guides/mini-apps.md).
+
 ## Архитектура
 
 ```

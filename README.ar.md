@@ -68,6 +68,26 @@ $me = $bot->callRaw('getMe');
 
 الدليل الكامل: [docs/guides/multi-bot.md](docs/ar/guides/multi-bot.md).
 
+## التحقق من `initData` التطبيقات المصغّرة
+
+تحصل واجهة التطبيق المصغّر من تلغرام على سلسلة هوية **موقّعة** (`Telegram.WebApp.initData`). تحقّق منها على الخادم قبل تقديم أي بيانات للمستخدم — `telegramBotApiPhp\WebApp\InitData` ينفّذ مخطط HMAC-SHA256 الرسمي بمقارنة زمن ثابت:
+
+```php
+use telegramBotApiPhp\WebApp\InitData;
+
+$res = InitData::validate($_POST['initData'] ?? '', $botToken, ['max_age' => 3600]);
+if (!$res['ok']) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => $res['error']]);
+    exit;
+}
+
+$me         = $res['user'];         // ['id' => 555000111, 'first_name' => 'Ali', ...]
+$startParam = $res['start_param'];  // من ?startapp=
+```
+
+الhelpers: `valid()` و `user()` و `build()` (مولّد initData موقّعة للاختبار فقط). الدليل الكامل: [docs/guides/mini-apps.md](docs/guides/mini-apps.md).
+
 ## البنية
 
 ```

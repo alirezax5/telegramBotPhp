@@ -66,6 +66,26 @@ $me = $bot->callRaw('getMe');
 
 Guide complet : [docs/guides/multi-bot.md](docs/fr/guides/multi-bot.md).
 
+## Validation d'`initData` des Mini Apps
+
+Le frontend d'une Mini App reçoit de Telegram une chaîne d'identité **signée** (`Telegram.WebApp.initData`). Vérifiez-la côté serveur avant de servir des données utilisateur — `telegramBotApiPhp\WebApp\InitData` implémente le schéma HMAC-SHA256 officiel avec comparaison à temps constant :
+
+```php
+use telegramBotApiPhp\WebApp\InitData;
+
+$res = InitData::validate($_POST['initData'] ?? '', $botToken, ['max_age' => 3600]);
+if (!$res['ok']) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => $res['error']]);
+    exit;
+}
+
+$me         = $res['user'];         // ['id' => 555000111, 'first_name' => 'Ali', ...]
+$startParam = $res['start_param'];  // payload du deep-link ?startapp=
+```
+
+Helpers : `valid()`, `user()` et `build()` (générateur d'initData signée pour tests). Guide complet : [docs/guides/mini-apps.md](docs/guides/mini-apps.md).
+
 ## Architecture
 
 ```

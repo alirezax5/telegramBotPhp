@@ -71,7 +71,27 @@ $bot->restoreToken();
 $me = $bot->callRaw('getMe');
 ```
 
-Full guide: [docs/guides/multi-bot.md](docs/en/guides/multi-bot.md).
+Full guide: [docs/guides/multi-bot.md](docs/guides/multi-bot.md).
+
+## Mini App `initData` validation
+
+A Mini App frontend gets a **signed** identity string from Telegram (`Telegram.WebApp.initData`). Verify it server-side before serving any user data — `telegramBotApiPhp\WebApp\InitData` implements the official HMAC-SHA256 scheme with constant-time comparison:
+
+```php
+use telegramBotApiPhp\WebApp\InitData;
+
+$res = InitData::validate($_POST['initData'] ?? '', $botToken, ['max_age' => 3600]);
+if (!$res['ok']) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => $res['error']]);   // bad_signature, auth_date_expired, ...
+    exit;
+}
+
+$me        = $res['user'];        // ['id' => 555000111, 'first_name' => 'Ali', ...]
+$startParam = $res['start_param']; // deep-link payload from ?startapp=...
+```
+
+Helpers: `valid()`, `user()`, and `build()` — a dev-only generator of correctly signed initData strings for testing endpoints before the frontend exists. Full guide: [docs/guides/mini-apps.md](docs/guides/mini-apps.md).
 
 ## Architecture
 
@@ -95,23 +115,24 @@ src/
 
 `Telegram` pulls in all domain traits via the `method` aggregator trait.
 All API methods return a typed `returned*` (response) object built by `BaseType::create()`.
+Mini App identity validation lives in `src/WebApp/InitData.php` (standalone, no bot-API dependency).
 
 ## License
 
 MIT
 
 ## Documentation
-- [architecture/overview.md](docs/en/architecture/overview.md) — full architecture
-- [architecture/folder-structure.md](docs/en/architecture/folder-structure.md)
-- [architecture/methods.md](docs/en/architecture/methods.md) — the 186 methods grouped by trait
-- [architecture/telegram-class.md](docs/en/architecture/telegram-class.md) — core class reference
-- [architecture/type-system.md](docs/en/architecture/type-system.md) — type system & returned*
-- [guides/webhook-vs-polling.md](docs/en/guides/webhook-vs-polling.md)
-- [guides/retry-and-resilience.md](docs/en/guides/retry-and-resilience.md) — retry strategy
-- [guides/multi-bot.md](docs/en/guides/multi-bot.md) — two bots in one process (token stack, raw calls)
+- [architecture/overview.md](docs/architecture/overview.md) — full architecture
+- [architecture/folder-structure.md](docs/architecture/folder-structure.md)
+- [architecture/methods.md](docs/architecture/methods.md) — the 186 methods grouped by trait
+- [architecture/telegram-class.md](docs/architecture/telegram-class.md) — core class reference
+- [architecture/type-system.md](docs/architecture/type-system.md) — type system & returned*
+- [guides/webhook-vs-polling.md](docs/guides/webhook-vs-polling.md)
+- [guides/retry-and-resilience.md](docs/guides/retry-and-resilience.md) — retry strategy
+- [guides/multi-bot.md](docs/guides/multi-bot.md) — two bots in one process (token stack, raw calls)
+- [guides/mini-apps.md](docs/guides/mini-apps.md) — Mini App `initData` validation (HMAC-SHA256, `max_age`, endpoint pattern)
 - [CHANGELOG.md](CHANGELOG.md) — release history
 - [README.fa.md](README.fa.md) — مستندات فارسی (RTL)
-
 
 ======================================================================
 SECTION: DOC: METHODS  (docs/en/architecture/methods.md)
@@ -702,6 +723,96 @@ Two real bots (`@emojiCustom_bot` as #1, `@instaroonxbot` as #2), one PHP proces
 
 
 ======================================================================
+SECTION: DOC: MINI APPS  (docs/en/guides/mini-apps.md)
+======================================================================
+
+# Guide — Mini App `initData` validation
+
+Telegram **Mini Apps** are web pages opened inside Telegram. The frontend receives `window.Telegram.WebApp.initData` — a query string **signed by Telegram** with your bot token. It is the only trustworthy proof of *which user* is using the app. This SDK ships a small validator that implements the official HMAC-SHA256 scheme:
+
+```php
+use telegramBotApiPhp\WebApp\InitData;
+```
+
+> **Never trust `initDataUnsafe`** — same fields, zero signature. Only the signed `initData` can be verified against the bot token. Mini App traffic does **not** go through the webhook: the user's browser calls your HTTPS domain directly, so the validator is pure PHP with no bot-API dependency.
+
+## Validate in your endpoint
+
+```php
+use telegramBotApiPhp\WebApp\InitData;
+
+// Accept form POST or a JSON body.
+$raw = $_POST['initData'] ?? null;
+if (!is_string($raw) || $raw === '') {
+    $json = json_decode((string) file_get_contents('php://input'), true);
+    $raw  = is_array($json) ? (string) ($json['initData'] ?? '') : '';
+}
+
+$res = InitData::validate((string) $raw, BOT_TOKEN, ['max_age' => 3600]);
+
+if (!$res['ok']) {
+    http_response_code(401);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => false, 'error' => $res['error']]);
+    exit;
+}
+
+$user       = $res['user'];        // ['id' => 555000111, 'first_name' => 'Ali', ...]
+$startParam = $res['start_param']; // deep-link payload from ?startapp=ref_7
+$authDate   = $res['auth_date'];
+```
+
+## API
+
+| Method | Signature | Returns |
+|---|---|---|
+| `validate()` | `validate(string $initData, string $botToken, array $options = [])` | Full result array |
+| `valid()` | same args | `bool` |
+| `user()` | same args | `?array` — the Mini App user or `null` |
+| `build()` | `build(array $fields, string $botToken)` | A correctly **signed** initData string — tests, fixtures, local curl-ing |
+
+**Success result:** `ok`, `user` (decoded array or `null`), `auth_date`, `start_param`, `fields` (all fields without the hash), `hash`.
+
+**Failure result:** `ok: false` + `error`: `empty_init_data` · `bot_token_missing` · `malformed_init_data` · `hash_missing` · `bad_signature` · `auth_date_missing` · `auth_date_expired`.
+
+**Options:** `max_age` — max accepted age of `auth_date` in seconds; default `86400`, `0` disables the check.
+
+## Opening the Mini App
+
+- Reply-keyboard button: `sendMessage($chatId, 'Shop', ['reply_markup' => ['keyboard' => [[['text' => 'Open Shop', 'web_app' => ['url' => 'https://your.domain/app']]]]]])`.
+- Or set the bot's Menu Button in BotFather (`/setmenubutton`).
+- Deep links: `https://t.me/yourbot?startapp=ref_7` → arrives as `start_param`.
+
+## Local testing
+
+```php
+// fixtures/init.php
+echo InitData::build(['user' => ['id' => 555000111, 'first_name' => 'Ali'], 'start_param' => 'ref_7'], BOT_TOKEN);
+```
+
+`curl --data-urlencode "initData@/tmp/init.txt" https://your.domain/app/api.php` — the endpoint sees a perfectly valid, freshly signed identity.
+
+> `build()` is for development and tests only.
+
+## Security checklist
+
+- Validate server-side on **every** privileged request — the signature proves the user, not your business logic.
+- Keep `max_age` tight (`3600` or less for sensitive operations).
+- `hash_equals()` is used internally (constant-time); never compare hashes with `===`.
+- Don't log `initData` or bot tokens.
+- The additional `signature` field (Ed25519) is for validating **third-party** Mini Apps; for your own bot the HMAC `hash` check is the official and sufficient scheme.
+
+## Algorithm reference
+
+1. Parse `initData` as a query string; remove `hash`.
+2. Data-check-string: remaining fields as `key=value`, sorted alphabetically by key, joined with `\n` (0x0A).
+3. `secret_key = HMAC_SHA256(key="WebAppData", message=BOT_TOKEN)`
+4. `computed   = HMAC_SHA256(key=secret_key, message=data_check_string)` — hex.
+5. Valid iff `computed == hash` (constant-time) and `auth_date` within `max_age`.
+
+Related: telegramBase users get the same validator with token auto-detection as `alirezax5\TelegramBase\App\MiniApp\InitData` — see the framework's `docs/en/mini-apps.md`.
+
+======================================================================
 SECTION: META: CHANGELOG (current version)  (CHANGELOG.md)
 ======================================================================
 
@@ -711,6 +822,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/); versioning follows [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+### Added — Mini App `initData` validator — `telegramBotApiPhp\WebApp\InitData` (2026-10-12)
+
+- New `WebApp\InitData` class: server-side validation of the signed identity string Mini App frontends receive (`Telegram.WebApp.initData`), implementing the official HMAC-SHA256 scheme — `secret_key = HMAC_SHA256("WebAppData", bot_token)`, then compare against the `hash` field with constant-time `hash_equals`. Pure PHP (json/hash only), no bot-API dependency — Mini App traffic bypasses the webhook entirely.
+- API: `validate($initData, $botToken, ['max_age' => 3600])` returns `['ok' => true, 'user' => ?array, 'auth_date' => int, 'start_param' => ?string, 'fields' => array, 'hash' => string]` or `['ok' => false, 'error' => …]` (`bad_signature`, `auth_date_expired`, `hash_missing`, …); helpers `valid()` and `user()`; plus `build(array $fields, $botToken)` — a development-only generator of correctly signed initData strings for curl-testing endpoints and fixtures.
+- `max_age` freshness window rejects stale `auth_date` (default 86400 s, `0` disables) — the replay defense, since `initData` never expires by itself.
+- Docs: `docs/guides/mini-apps.md` (en) with endpoint pattern, API table, deep-link/`start_param` notes, security checklist and algorithm reference (+ fa and 4 more translations in the GitHub bundle); README sections added.
+- Verified with a cross-language test vector generated independently in Python (guards against the classic HMAC key/message argument swap); also adopted by telegramBase as `App\MiniApp\InitData` with env token auto-detection.
+
+### Added — `Telegram::onApiCall()` API trace hook (2026-10-12)
+
+- Static, process-wide observer fired **after every Bot API call** (all instances, all tokens): `Telegram::onApiCall(function (array $info) { ... });` — pass `null` to unregister.
+- `$info` is deliberately compact: `method`, `duration_ms`, `ok`, plus `chat_id` (when present in the request) and on failure `error_code`, `description`, `retry_after`. Full payloads are intentionally NOT exposed — keep logging cheap and private.
+- Tracing is wrapped so it can never break delivery (exceptions inside the callback are swallowed). Implemented by splitting `bot()` into a thin timing wrapper over `botExecute()` — zero behavior change when no callback is registered.
+- Consumer: telegramBase's `LOG_API_TRACE=1` (`App\Bot\ApiTrace`) uses it to write one delivery line per API call into the app log.
+
 
 ### Added — docs: one webhook file, many bots (`secret_token` routing)
 

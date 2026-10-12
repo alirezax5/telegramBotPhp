@@ -27,11 +27,8 @@ Lightweight PHP 8.1+ wrapper for the Telegram Bot API — zero runtime dependenc
 - Pattern 1: independent `new Telegram($token)` instances — full isolation (own handle/cache/identity). Use for constant dual-bot operation, e.g. membership checks via bot #2's token.
 - Pattern 2: token stack on one instance — `switchToken($t2); ...; restoreToken()` (LIFO). Use for bracketed excursions; always restore in `finally`.
 - `callRaw($method, $data)` for diagnostics/recent methods.
-- One webhook file can serve many bots: `secret_token` routing via the `X-Telegram-Bot-Api-Secret-Token` header (per-bot secret → token registry; token never in a URL; the secret doubles as the inbound authenticity check, 403 otherwise). Verified live 2026-10-11: two real bots, one file, 7/7 correct-identity deliveries.
 - Framework integration: TelegramBase `BotManager` + `BOT_EXTRA_BOTS="name:token,..."` env; guard `has($name)` before `get($name)` (unknown names fall back to the MAIN bot silently).
 - Verified live 2026-10-11 with two real bots: identity/isolation/cross-send/getChatMember/token-stack all PASS; full suite 5/5 in 393 ms.
-
-- Documentation is multilingual: `docs/en/` (canonical) with `architecture/` and `guides/` subfolders, plus complete sets in `docs/fa/`, `docs/zh/`, `docs/ru/`, `docs/fr/`, `docs/pt/`, `docs/ar/` — language hub at docs/README.md; per-language READMEs (README.md, README.fa.md, README.zh.md, README.ru.md, README.fr.md, README.pt.md, README.ar.md).
 
 ## Files
 
@@ -58,13 +55,14 @@ Lightweight PHP 8.1+ wrapper for the Telegram Bot API — zero runtime dependenc
 - src/Types/returnedChatMember.php — chat member response
 - CHANGELOG.md — release history (3.3.0: getChatMember fix, JSON params completion, null-strip, timeout reset; live two-bot verification)
 - README.fa.md — Persian (RTL) documentation mirror
-- docs/en/architecture/methods.md — full method listing grouped by trait
-- docs/en/architecture/overview.md — project overview and goals
-- docs/en/architecture/telegram-class.md — core class reference
-- docs/en/architecture/type-system.md — type system docs
-- docs/en/guides/webhook-vs-polling.md — delivery mode guide
-- docs/en/guides/retry-and-resilience.md — retry strategy docs
-- docs/en/guides/multi-bot.md — two bots in one process (patterns, pitfalls, live evidence)
+- docs/architecture/methods.md — full method listing grouped by trait
+- docs/architecture/overview.md — project overview and goals
+- docs/architecture/telegram-class.md — core class reference
+- docs/architecture/type-system.md — type system docs
+- docs/guides/webhook-vs-polling.md — delivery mode guide
+- docs/guides/retry-and-resilience.md — retry strategy docs
+- docs/guides/multi-bot.md — two bots in one process (patterns, pitfalls, live evidence)
+- docs/guides/mini-apps.md — Mini App initData validation (WebApp\InitData: HMAC-SHA256 "WebAppData" scheme, max_age replay window, validate/valid/user/build API, endpoint pattern, security checklist)
 
 ## Structure
 
@@ -83,6 +81,8 @@ src/
 │   ├── isChatTypes.php   — boolean chat checkers
 │   ├── isMedia.php       — boolean media checkers
 │   └── otherTrait.php    — convenience getters
+├── WebApp/
+│   └── InitData.php      — Mini App initData validator (HMAC-SHA256, validate/valid/user/build)
 └── Types/
     ├── BaseType.php      — abstract type base
     └── *.php             — 199 response/entity types
