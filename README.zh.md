@@ -4,7 +4,7 @@
 
 轻量级的 PHP 8.1+ **Telegram Bot API** 封装库 —— 零运行时依赖，完整覆盖当前每一个 API 方法（186 个 Bot 方法）和每一个响应/实体类型（199 个类型）。
 
-当前版本：**3.3.0** —— 参见 [CHANGELOG.md](CHANGELOG.md)（修复了 3.2.1 中损坏的 `getChatMember()`，补全了嵌套参数的 JSON 序列化，剔除 null 值，修复了 cURL 超时泄漏；多机器人流程已用两个真实机器人实测验证）。
+当前版本：**3.4.0** —— 参见 [CHANGELOG.md](CHANGELOG.md)（修复了 3.2.1 中损坏的 `getChatMember()`，补全了嵌套参数的 JSON 序列化，剔除 null 值，修复了 cURL 超时泄漏；多机器人流程已用两个真实机器人实测验证）。
 
 ## 环境要求
 

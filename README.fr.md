@@ -4,7 +4,7 @@
 
 Wrapper PHP 8.1+ léger pour l'**API Bot de Telegram** — zéro dépendance d'exécution, couverture complète de chaque méthode d'API actuelle (186 méthodes de bot) et de chaque type de réponse/entité (199 types).
 
-Version actuelle : **3.3.0** — voir [CHANGELOG.md](CHANGELOG.md) (corrige un `getChatMember()` cassé dans la 3.2.1, achève la sérialisation JSON des paramètres imbriqués, supprime les null, corrige une fuite de timeout cURL ; flux multi-bots vérifiés en conditions réelles avec deux vrais bots).
+Version actuelle : **3.4.0** — voir [CHANGELOG.md](CHANGELOG.md) (corrige un `getChatMember()` cassé dans la 3.2.1, achève la sérialisation JSON des paramètres imbriqués, supprime les null, corrige une fuite de timeout cURL ; flux multi-bots vérifiés en conditions réelles avec deux vrais bots).
 
 ## Prérequis
 
