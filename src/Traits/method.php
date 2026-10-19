@@ -168,7 +168,7 @@ trait method
      */
     private function call(string $method, array $data = [], bool $isUpload = false): ?\stdClass
     {
-        $data = $this->prepareBotData($data);
+        // bot() normalizes now (single choke point) — no pre-pass here.
         $result = $this->bot($method, $data, $isUpload);
 
         if ($result === null) {
@@ -188,6 +188,6 @@ trait method
      */
     public function callRaw(string $method, array $data = [], bool $isUpload = false): ?\stdClass
     {
-        return $this->bot($method, $this->prepareBotData($data), $isUpload);
+        return $this->bot($method, $data, $isUpload);
     }
 }

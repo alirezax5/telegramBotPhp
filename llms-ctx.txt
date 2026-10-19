@@ -856,6 +856,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/); versioni
 - Language hub added at `docs/README.md`; per-language READMEs (`README.md`, `README.fa.md`, `README.zh.md`, `README.ru.md`, `README.fr.md`, `README.pt.md`, `README.ar.md`) with a language switcher at the top of each.
 
 ### Fixed
+- **Raw `bot()` payloads normalized (2026-10-13)** — `Telegram::bot()` now runs EVERY
+  payload through `prepareBotData()` before the wire. The raw entry point previously skipped
+  request preparation, so array `reply_markup` / `prices` / `entities` / `allowed_updates`
+  went out as PHP-array POST fields and Telegram answered
+  `Bad Request: can't parse ... JSON object` (production: every keyboard-bearing
+  `editMessageText` 400'd silently). `call()` / `callRaw()` no longer pre-normalize —
+  `bot()` is the single choke point; normalization is idempotent (pre-encoded JSON
+  strings and `CURLFile` instances pass through untouched).
 - **`getChatMember()` was broken in 3.2.1** — `returnedChatMember` was referenced without its `telegramBotApiPhp\Types` import in `ChatAdministration.php`, so every call threw
   `Class "telegramBotApiPhp\Traits\returnedChatMember" not found`.
   Found and verified live during a two-bot integration test.

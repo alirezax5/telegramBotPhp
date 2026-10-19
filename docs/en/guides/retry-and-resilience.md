@@ -15,6 +15,22 @@ The SDK ships a small, built-in HTTP reliability layer in `Telegram::bot()`.
 - `CURLOPT_TIMEOUT` defaults to 30s (constructor `$curlTimeout`). For long-poll `getUpdates` with an explicit `timeout`, the socket timeout is raised to `timeout + 5` so a slow long-poll response isn't cut.
 - SSL verification is ON (`CURLOPT_SSL_VERIFYPEER => true`).
 
+## Payload normalization
+
+`bot()` runs **every** payload through `prepareBotData()` before it hits the
+wire — the raw entry point and the typed methods share one normalization
+choke point:
+
+- JSON-typed fields (`reply_markup`, `prices`, `entities`, `allowed_updates`,
+  `results`, `reaction`, ...) are `json_encode`d when passed as PHP arrays.
+- File fields (`photo`, `sticker`, `video`, ...) given as local paths are
+  converted to `CURLFile` before encoding.
+- `null` values are stripped from the final payload.
+
+Normalization is **idempotent** — pre-encoded JSON strings and `CURLFile`
+instances pass through untouched, so defensive double preparation at call
+sites is harmless (and common in framework code layered on top of the SDK).
+
 ## Failure return shape
 
 When retries are exhausted, `bot()` returns a `stdClass`:

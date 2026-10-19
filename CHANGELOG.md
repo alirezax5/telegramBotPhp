@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/); versioni
 
 ## [Unreleased]
 
+### Fixed — every `bot()` payload is normalized at the raw choke point (2026-10-13)
+
+- **`Telegram::bot()` now runs every payload through `prepareBotData()` before it hits the wire.** The raw entry point previously skipped request preparation entirely, so callers that passed PHP arrays for JSON-typed parameters (`reply_markup`, `prices`, `entities`, `allowed_updates`, ...) shipped PHP-array POST fields and Telegram answered `Bad Request: can't parse ... JSON object`. Typed methods normalized their own payloads — raw callers were left to discover the contract by failure. Found on a production deployment (telegramBase): every keyboard-bearing `editMessageText` 400'd silently because the framework's raw `$tg->bot()` call passed an array reply_markup.
+- Normalization is **idempotent**: pre-encoded JSON strings and `CURLFile` instances pass through untouched (is_array guards + CURLFile passthrough), so defensive double preparation at call sites stays harmless.
+- `call()` / `callRaw()` no longer pre-normalize — `bot()` is the single normalization choke point for the entire SDK (typed methods, raw calls, trace hook included).
+- Verified live: a raw `bot('sendMessage', [... 'reply_markup' => ['inline_keyboard' => [...]]])` returned `ok: true` (previously `ok: false, description: "Bad Request: can't parse reply keyboard markup JSON object"`).
+
 ### Added — Mini App `initData` validator — `telegramBotApiPhp\WebApp\InitData` (2026-10-12)
 
 - New `WebApp\InitData` class: server-side validation of the signed identity string Mini App frontends receive (`Telegram.WebApp.initData`), implementing the official HMAC-SHA256 scheme — `secret_key = HMAC_SHA256("WebAppData", bot_token)`, then compare against the `hash` field with constant-time `hash_equals`. Pure PHP (json/hash only), no bot-API dependency — Mini App traffic bypasses the webhook entirely.

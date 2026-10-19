@@ -109,7 +109,11 @@ class Telegram
     public function setToken(string $token): self
     {
         $this->botToken = $token;
-        $this->urlFile = str_replace(['{url}', '{token}'], [$this->apiUrl, $token], $this->fileUrlTemplate);
+        $template = $this->fileUrlTemplate;
+        if (!str_contains($template, '{file_path}')) {
+            $template = rtrim($template, '/') . '/file/bot{token}/{file_path}';
+        }
+        $this->urlFile = str_replace(['{url}', '{token}'], [$this->apiUrl, $token], $template);
         $this->clearCache();
         return $this;
     }
@@ -167,6 +171,16 @@ class Telegram
 
     public function bot(string $method, array $data = [], bool $isUpload = false): ?\stdClass
     {
+        // Normalize EVERY payload at the raw choke point (2026-10-13).
+        // Raw callers previously bypassed prepareBotData(), so array
+        // reply_markup / prices / entities / allowed_updates went over
+        // the wire as PHP-array POST fields and Telegram answered
+        // "can't parse ... JSON object" (found in production: every
+        // keyboard-bearing edit 400'd silently). Typed methods already
+        // normalize; prepareBotData() is idempotent (is_array guards +
+        // CURLFile passthrough), so double preparation is a no-op.
+        $data = $this->prepareBotData($data);
+
         $t0 = microtime(true);
         $result = $this->botExecute($method, $data, $isUpload);
         $this->traceApiCall($method, $data, $t0, $result);
@@ -300,7 +314,9 @@ class Telegram
     public function close(): void
     {
         if ($this->curlHandle instanceof \CurlHandle) {
-            curl_close($this->curlHandle);
+            // No curl_close() — deprecated since PHP 8.5 and a no-op since
+            // 8.0; dropping the reference lets the engine free the handle
+            // with identical effect and no deprecation notice on 8.5+.
             $this->curlHandle = null;
         }
     }
@@ -326,10 +342,20 @@ class Telegram
 
     public function getFileUrl(string $filePath): string
     {
+        $template = $this->fileUrlTemplate;
+        if (!str_contains($template, '{file_path}')) {
+            // Tolerate a plain base URL passed where a template is expected
+            // (older BotManager versions pass BOT_API_URL_FILE directly).
+            // Without this, every file download collapsed to the API root
+            // and fetched the api.telegram.org HTML portal instead of the
+            // file (HTTP 200 text/html — finfo then rejected it).
+            $template = rtrim($template, '/') . '/file/bot{token}/{file_path}';
+        }
+
         return str_replace(
             ['{url}', '{token}', '{file_path}'],
             [$this->apiUrl, $this->botToken, ltrim($filePath, '/')],
-            $this->fileUrlTemplate
+            $template
         );
     }
 

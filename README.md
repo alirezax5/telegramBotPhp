@@ -4,7 +4,7 @@
 
 Lightweight PHP 8.1+ wrapper for the **Telegram Bot API** — zero runtime dependencies, full coverage of every current API method (186 bot methods) and every response/entity type (199 types).
 
-Current release: **3.4.0** — see [CHANGELOG.md](CHANGELOG.md) (fixes a broken `getChatMember()` in 3.2.1, completes JSON serialization of nested parameters, strips nulls, fixes a cURL timeout leak; multi-bot flows verified live with two real bots).
+Current release: **3.3.0** — see [CHANGELOG.md](CHANGELOG.md) (fixes a broken `getChatMember()` in 3.2.1, completes JSON serialization of nested parameters, strips nulls, fixes a cURL timeout leak; multi-bot flows verified live with two real bots).
 
 ## Requirements
 
